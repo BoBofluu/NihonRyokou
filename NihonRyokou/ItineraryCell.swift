@@ -162,16 +162,14 @@ class ItineraryCell: UITableViewCell {
         
         // URL 邏輯處理
         if let urlStr = item.locationURL, !urlStr.isEmpty {
-            // 有 URL：顯示提示，並允許 Cell 被點擊
-            linkHintLabel.text = "Link 🔗" // 這裡也可以用 localized
+            // 有 URL：顯示提示，開啟點擊
+            linkHintLabel.text = "Link 🔗"
             linkHintLabel.isHidden = false
-            self.selectionStyle = .default // 這樣 TableView 才會觸發點擊效果 (雖然我們在 setupUI 設 none，但透過 setHighlighted 手動控制動畫)
-            self.isUserInteractionEnabled = true
+            self.selectionStyle = .default
         } else {
-            // 無 URL：隱藏提示，Cell 看起來不可點
+            // 無 URL：隱藏提示，關閉點擊效果
             linkHintLabel.isHidden = true
             self.selectionStyle = .none
-            // 注意：不要設 isUserInteractionEnabled = false，否則滑動刪除會失效
         }
     }
 }

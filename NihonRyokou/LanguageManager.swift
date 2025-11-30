@@ -9,7 +9,8 @@ class LanguageManager {
         case system = "system"
         case english = "en"
         case chinese = "zh-Hant"
-        case korean = "ko"
+        case korean = "ko"      // 保留原本的韓文
+        case japanese = "ja"    // 新增日文
         
         var displayName: String {
             switch self {
@@ -17,6 +18,7 @@ class LanguageManager {
             case .english: return "English"
             case .chinese: return "繁體中文"
             case .korean: return "한국어"
+            case .japanese: return "日本語"
             }
         }
     }

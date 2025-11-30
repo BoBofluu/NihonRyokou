@@ -16,3 +16,7 @@
 "language_setting" = "語言設定 🌐";
 "itinerary_tab" = "行程 📅";
 "input_tab" = "新增 ➕";
+"delete_confirm_title" = "刪除確認";
+"delete_confirm_message" = "您確定要刪除這個項目嗎？";
+"confirm" = "確認刪除";
+"cancel" = "取消";

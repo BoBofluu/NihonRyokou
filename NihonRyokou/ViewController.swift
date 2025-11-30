@@ -11,7 +11,7 @@ struct ItinerarySection {
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
     private let tableView: UITableView = {
-        // 使用 .insetGrouped 樣式讓 Section 之間有區隔，符合 Q 版風格
+        // 使用 insetGrouped 風格，讓區塊更明顯（Q版風格）
         let tv = UITableView(frame: .zero, style: .insetGrouped)
         tv.backgroundColor = Theme.primaryColor
         tv.separatorStyle = .none
@@ -19,7 +19,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         return tv
     }()
     
-    // 改用 Section 陣列
+    // 改用 Section 陣列來儲存分組後的資料
     private var sections: [ItinerarySection] = []
     
     override func viewDidLoad() {
@@ -33,7 +33,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        fetchData() // 每次出現時重新整理資料
+        fetchData() // 每次出現頁面重新抓取資料
     }
     
     private func setupTableView() {
@@ -53,9 +53,8 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     private func fetchData() {
         let allItems = CoreDataManager.shared.fetchItems()
         
-        // 1. 依照日期分組
+        // 1. 依照日期分組 (忽略時間，只看年月日)
         let grouped = Dictionary(grouping: allItems) { item -> Date in
-            // 只取年月日，忽略時間
             let date = item.timestamp ?? Date()
             let components = Calendar.current.dateComponents([.year, .month, .day], from: date)
             return Calendar.current.date(from: components) ?? date
@@ -68,7 +67,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             let itemsInDate = grouped[date] ?? []
             // 同一天內的行程依照時間排序
             let sortedItems = itemsInDate.sorted { ($0.timestamp ?? Date()) < ($1.timestamp ?? Date()) }
-            // 計算當日總額
+            // 計算該日總額
             let total = sortedItems.reduce(0) { $0 + $1.price }
             
             return ItinerarySection(date: date, totalAmount: total, items: sortedItems)
@@ -90,7 +89,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     // 自定義 Header (顯示日期與總額)
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let headerView = UIView()
-        // headerView.backgroundColor = .clear // 透明背景
+        // headerView.backgroundColor = .clear
         
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -99,23 +98,22 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         
         let sectionData = sections[section]
         
-        // 日期格式
+        // 日期格式化
         let dateFormatter = DateFormatter()
         dateFormatter.dateStyle = .medium
         dateFormatter.timeStyle = .none
-        // 若有多語言需求，可設 locale，這裡跟隨系統
-        dateFormatter.locale = Locale.current
+        dateFormatter.locale = Locale.current // 跟隨系統或語言設定
         
         let dateStr = dateFormatter.string(from: sectionData.date)
         let priceStr = "¥\(Int(sectionData.totalAmount))"
         
-        // 組合字串： "2025年11月30日   Total: ¥8000"
+        // 組合顯示文字
         label.text = "\(dateStr)    Total: \(priceStr)"
         
         headerView.addSubview(label)
         
         NSLayoutConstraint.activate([
-            label.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 20),
+            label.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
             label.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
             label.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 8)
         ])
@@ -136,54 +134,91 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         return cell
     }
     
+    // 點擊事件：只有在有 URL 時才開啟
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let item = sections[indexPath.section].items[indexPath.row]
-        
-        // 判斷是否有 URL，若無則直接返回（無點擊效果）
-        guard let urlString = item.locationURL, !urlString.isEmpty, let url = URL(string: urlString) else {
-            // 可選擇加上震動提示這是不可點的，或是直接不反應
-            return
-        }
-        
-        // 點擊動畫
         tableView.deselectRow(at: indexPath, animated: true)
         
-        let safariVC = SFSafariViewController(url: url)
-        safariVC.preferredControlTintColor = Theme.accentColor
-        present(safariVC, animated: true)
+        let item = sections[indexPath.section].items[indexPath.row]
+        
+        if let urlString = item.locationURL, !urlString.isEmpty, let url = URL(string: urlString) {
+            let safariVC = SFSafariViewController(url: url)
+            safariVC.preferredControlTintColor = Theme.accentColor
+            present(safariVC, animated: true)
+        }
+        // 若無 URL，因為 Cell 設定了 selectionStyle = .none (在 ItineraryCell 中設定)，視覺上不會有點擊反應
     }
     
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            let item = sections[indexPath.section].items[indexPath.row]
+    // 刪除功能：使用 trailingSwipeActionsConfiguration 實作彈跳視窗確認
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        
+        let deleteAction = UIContextualAction(style: .destructive, title: "delete_action".localized) { [weak self] (action, view, completionHandler) in
+            guard let self = self else { return }
             
-            // 從 Core Data 刪除
-            CoreDataManager.shared.deleteItem(item)
+            // 顯示確認視窗 (Alert)
+            let alert = UIAlertController(
+                title: "delete_confirm_title".localized,
+                message: "delete_confirm_message".localized,
+                preferredStyle: .alert
+            )
             
-            // 更新本地資料源
-            sections[indexPath.section].items.remove(at: indexPath.row)
-            // 若該 Section 空了，連 Section 一起刪除；否則只刪 Row
-            if sections[indexPath.section].items.isEmpty {
-                sections.remove(at: indexPath.section)
-                tableView.deleteSections(IndexSet(integer: indexPath.section), with: .fade)
-            } else {
-                // 重新計算該 Section 總額 (因為少了一個項目)
-                let newItems = sections[indexPath.section].items
-                let newTotal = newItems.reduce(0) { $0 + $1.price }
-                // 由於 struct 是 value type，需重新賦值更新
-                let oldDate = sections[indexPath.section].date
-                sections[indexPath.section] = ItinerarySection(date: oldDate, totalAmount: newTotal, items: newItems)
-                
-                tableView.deleteRows(at: [indexPath], with: .fade)
-                // 重新整理 Header 以更新總額
+            // 取消按鈕
+            alert.addAction(UIAlertAction(title: "cancel".localized, style: .cancel) { _ in
+                completionHandler(false) // 告訴系統刪除取消了，滑動會收回去
+            })
+            
+            // 確認刪除按鈕
+            alert.addAction(UIAlertAction(title: "confirm".localized, style: .destructive) { _ in
+                self.performDelete(at: indexPath)
+                completionHandler(true) // 告訴系統刪除完成了
+            })
+            
+            self.present(alert, animated: true)
+        }
+        
+        deleteAction.backgroundColor = .systemRed
+        deleteAction.image = UIImage(systemName: "trash")
+        
+        return UISwipeActionsConfiguration(actions: [deleteAction])
+    }
+    
+    // 執行實際的刪除邏輯
+    private func performDelete(at indexPath: IndexPath) {
+        let item = sections[indexPath.section].items[indexPath.row]
+        
+        // 1. 從 Core Data 資料庫刪除
+        CoreDataManager.shared.deleteItem(item)
+        
+        // 2. 更新本地資料來源 (Sections)
+        sections[indexPath.section].items.remove(at: indexPath.row)
+        
+        // 3. 更新 UI
+        if sections[indexPath.section].items.isEmpty {
+            // 如果該天沒行程了，刪除整個 Section
+            sections.remove(at: indexPath.section)
+            tableView.deleteSections(IndexSet(integer: indexPath.section), with: .fade)
+        } else {
+            // 否則只刪除該行
+            tableView.deleteRows(at: [indexPath], with: .fade)
+            
+            // 重新計算該 Section 總額
+            let newItems = sections[indexPath.section].items
+            let newTotal = newItems.reduce(0) { $0 + $1.price }
+            
+            // 更新 Struct 資料
+            let oldDate = sections[indexPath.section].date
+            sections[indexPath.section] = ItinerarySection(date: oldDate, totalAmount: newTotal, items: newItems)
+            
+            // 為了更新 Header 上的總金額，我們需要刷新該 Section (或者只刷新 Header，但 reloadSection 比較簡單)
+            // 延遲一點點執行以免動畫衝突，或者使用 UIView.performWithoutAnimation
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 UIView.performWithoutAnimation {
-                    tableView.reloadSections(IndexSet(integer: indexPath.section), with: .none)
+                    self.tableView.reloadSections(IndexSet(integer: indexPath.section), with: .none)
                 }
             }
         }
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 110 // 稍微加高一點以容納右下角的連結提示
+        return 110 // 稍微增加高度以容納資訊
     }
 }

@@ -161,24 +161,27 @@ class InputViewController: UIViewController {
     }
     
     @objc private func segmentChanged() {
-        // 修改：不再隱藏 urlField，所有選項都可輸入 URL
-        let index = segmentedControl.selectedSegmentIndex
-        
-        switch index {
-        case 0: // Transport
-            titleField.placeholder = "title_placeholder_transport".localized
-        case 1: // Hotel
-            titleField.placeholder = "title_placeholder_hotel".localized
-        case 2: // Restaurant
-            titleField.placeholder = "title_placeholder_restaurant".localized
-        default:
-            titleField.placeholder = "title_placeholder_default".localized
+            // 修正：所有選項都要可以輸入 URL，所以不再設定 urlField.isHidden
+            let index = segmentedControl.selectedSegmentIndex
+            
+            switch index {
+            case 0: // Transport
+                titleField.placeholder = "title_placeholder_transport".localized
+            case 1: // Hotel
+                titleField.placeholder = "title_placeholder_hotel".localized
+            case 2: // Restaurant
+                titleField.placeholder = "title_placeholder_restaurant".localized
+            default:
+                titleField.placeholder = "title_placeholder_default".localized
+            }
+            
+            locationField.placeholder = "location_placeholder".localized
+            priceField.placeholder = "price_placeholder".localized
+            urlField.placeholder = "url_placeholder".localized // 確保這行會執行
+            
+            // 如果您之前的程式碼有 urlField.isHidden = ... 請務必移除
+            urlField.isHidden = false
         }
-        
-        locationField.placeholder = "location_placeholder".localized
-        priceField.placeholder = "price_placeholder".localized
-        urlField.placeholder = "url_placeholder".localized
-    }
     
     @objc private func handleSave() {
         guard let title = titleField.text, !title.isEmpty else { return }

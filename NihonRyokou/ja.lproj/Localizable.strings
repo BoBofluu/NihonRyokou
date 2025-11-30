@@ -1,0 +1,25 @@
+/* Localizable.strings (Japanese) */
+"app_title" = "日本旅行計画 🇯🇵";
+"add_item_title" = "項目を追加 ✏️";
+"transport" = "交通 🚅";
+"hotel" = "宿泊 🏨";
+"restaurant" = "食事 🍜";
+"title_placeholder_default" = "タイトル（例：東京駅）";
+"title_placeholder_transport" = "駅名 / 路線名 🚉";
+"title_placeholder_hotel" = "ホテル名 🛌";
+"title_placeholder_restaurant" = "店名 🍽️";
+"location_placeholder" = "場所 📍";
+"price_placeholder" = "金額 (円) 💴";
+"url_placeholder" = "URL (任意) 🔗";
+"add_button_title" = "リストに追加 ✨";
+"delete_action" = "削除 🗑️";
+"settings_title" = "設定 ⚙️";
+"language_setting" = "言語設定 🌐";
+"itinerary_tab" = "旅程 📅";
+"input_tab" = "追加 ➕";
+
+/* 刪除確認視窗 */
+"delete_confirm_title" = "確認";
+"delete_confirm_message" = "本当にこの項目を削除しますか？";
+"confirm" = "削除";
+"cancel" = "キャンセル";

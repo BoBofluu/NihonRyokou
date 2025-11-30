@@ -16,3 +16,9 @@
 "language_setting" = "언어 설정 🌐";
 "itinerary_tab" = "일정 📅";
 "input_tab" = "추가 ➕";
+
+/* 刪除確認視窗 (新增部分) */
+"delete_confirm_title" = "삭제 확인";
+"delete_confirm_message" = "정말 이 항목을 삭제하시겠습니까?";
+"confirm" = "삭제";
+"cancel" = "취소";
