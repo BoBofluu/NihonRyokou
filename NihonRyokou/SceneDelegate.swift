@@ -13,10 +13,54 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
-        // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
-        // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
-        guard let _ = (scene as? UIWindowScene) else { return }
+        guard let windowScene = (scene as? UIWindowScene) else { return }
+        
+        let window = UIWindow(windowScene: windowScene)
+        self.window = window
+        setupTabBar()
+        window.makeKeyAndVisible()
+    }
+    
+    func setupTabBar() {
+        let inputVC = InputViewController()
+        let inputNav = UINavigationController(rootViewController: inputVC)
+        inputNav.tabBarItem = UITabBarItem(title: "input_tab".localized, image: UIImage(systemName: "plus.circle.fill"), tag: 0)
+        
+        let itineraryVC = ViewController()
+        let itineraryNav = UINavigationController(rootViewController: itineraryVC)
+        itineraryNav.tabBarItem = UITabBarItem(title: "itinerary_tab".localized, image: UIImage(systemName: "list.bullet.rectangle.portrait"), tag: 1)
+        
+        let settingsVC = SettingsViewController()
+        let settingsNav = UINavigationController(rootViewController: settingsVC)
+        settingsNav.tabBarItem = UITabBarItem(title: "settings_title".localized, image: UIImage(systemName: "gearshape"), tag: 2)
+        
+        let tabBarController = UITabBarController()
+        tabBarController.viewControllers = [inputNav, itineraryNav, settingsNav]
+        tabBarController.tabBar.tintColor = Theme.accentColor
+        tabBarController.tabBar.backgroundColor = .white
+        
+        window?.rootViewController = tabBarController
+    }
+    
+    func reloadRootViewController() {
+        // Animate the transition
+        guard let window = window else { return }
+        
+        let snapshot = window.snapshotView(afterScreenUpdates: true)
+        if let snapshot = snapshot {
+            window.addSubview(snapshot)
+        }
+        
+        setupTabBar()
+        
+        if let snapshot = snapshot {
+            window.bringSubviewToFront(snapshot)
+            UIView.animate(withDuration: 0.3, animations: {
+                snapshot.alpha = 0
+            }) { _ in
+                snapshot.removeFromSuperview()
+            }
+        }
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

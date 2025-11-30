@@ -1,0 +1,54 @@
+import Foundation
+
+class LanguageManager {
+    static let shared = LanguageManager()
+    
+    private let languageKey = "selectedLanguage"
+    
+    enum Language: String, CaseIterable {
+        case system = "system"
+        case english = "en"
+        case chinese = "zh-Hant"
+        case korean = "ko"
+        
+        var displayName: String {
+            switch self {
+            case .system: return "System Default"
+            case .english: return "English"
+            case .chinese: return "繁體中文"
+            case .korean: return "한국어"
+            }
+        }
+    }
+    
+    var currentLanguage: Language {
+        get {
+            guard let rawValue = UserDefaults.standard.string(forKey: languageKey),
+                  let lang = Language(rawValue: rawValue) else {
+                return .system
+            }
+            return lang
+        }
+        set {
+            UserDefaults.standard.set(newValue.rawValue, forKey: languageKey)
+        }
+    }
+    
+    func localizedString(_ key: String) -> String {
+        var bundle = Bundle.main
+        
+        if currentLanguage != .system,
+           let path = Bundle.main.path(forResource: currentLanguage.rawValue, ofType: "lproj"),
+           let langBundle = Bundle(path: path) {
+            bundle = langBundle
+        }
+        
+        return NSLocalizedString(key, tableName: nil, bundle: bundle, value: "", comment: "")
+    }
+}
+
+extension String {
+    var localized: String {
+        return LanguageManager.shared.localizedString(self)
+    }
+}

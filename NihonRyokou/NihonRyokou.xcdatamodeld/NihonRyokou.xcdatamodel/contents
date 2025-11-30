@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1" systemVersion="11A491" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="false" userDefinedModelVersionIdentifier="">
-    <elements/>
+    <entity name="ItineraryItem" representedClassName="ItineraryItem" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="type" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="title" optional="YES" attributeType="String"/>
+        <attribute name="locationName" optional="YES" attributeType="String"/>
+        <attribute name="locationURL" optional="YES" attributeType="String"/>
+        <attribute name="price" optional="YES" attributeType="Double" usesScalarValueType="YES"/>
+    </entity>
+    <elements>
+        <element name="ItineraryItem" positionX="0" positionY="0" width="128" height="120"/>
+    </elements>
 </model>
