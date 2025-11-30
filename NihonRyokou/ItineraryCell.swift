@@ -9,16 +9,17 @@ class ItineraryCell: UITableViewCell {
         view.backgroundColor = .white
         view.layer.cornerRadius = Theme.cornerRadius
         view.layer.shadowColor = Theme.accentColor.cgColor
-        view.layer.shadowOpacity = 0.15
-        view.layer.shadowOffset = CGSize(width: 0, height: 4)
-        view.layer.shadowRadius = 8
+        view.layer.shadowOpacity = 0.1
+        view.layer.shadowOffset = CGSize(width: 0, height: 2)
+        view.layer.shadowRadius = 4
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
     private let timeLabel: UILabel = {
         let label = UILabel()
-        label.font = Theme.font(size: 14, weight: .bold)
+        // 使用等寬數字字型，讓時間排列整齊
+        label.font = UIFont.monospacedDigitSystemFont(ofSize: 14, weight: .bold)
         label.textColor = Theme.textDark
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -36,6 +37,7 @@ class ItineraryCell: UITableViewCell {
         let label = UILabel()
         label.font = Theme.font(size: 16, weight: .semibold)
         label.textColor = Theme.textDark
+        label.numberOfLines = 1
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -52,6 +54,16 @@ class ItineraryCell: UITableViewCell {
         let label = UILabel()
         label.font = Theme.font(size: 14, weight: .medium)
         label.textColor = Theme.secondaryAccent
+        label.textAlignment = .right
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    // 新增：連結提示標籤
+    private let linkHintLabel: UILabel = {
+        let label = UILabel()
+        label.font = Theme.font(size: 12, weight: .regular)
+        label.textColor = .systemBlue
         label.textAlignment = .right
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -76,35 +88,50 @@ class ItineraryCell: UITableViewCell {
         containerView.addSubview(titleLabel)
         containerView.addSubview(locationLabel)
         containerView.addSubview(priceLabel)
+        containerView.addSubview(linkHintLabel) // Add to view
         
         NSLayoutConstraint.activate([
-            containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
-            containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
+            containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
+            containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
             containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             
             timeLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 12),
             timeLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
-            timeLabel.widthAnchor.constraint(equalToConstant: 50),
+            timeLabel.widthAnchor.constraint(equalToConstant: 45),
             
             iconView.centerYAnchor.constraint(equalTo: timeLabel.centerYAnchor),
-            iconView.leadingAnchor.constraint(equalTo: timeLabel.trailingAnchor, constant: 8),
-            iconView.widthAnchor.constraint(equalToConstant: 20),
-            iconView.heightAnchor.constraint(equalToConstant: 20),
+            iconView.leadingAnchor.constraint(equalTo: timeLabel.trailingAnchor, constant: 4),
+            iconView.widthAnchor.constraint(equalToConstant: 24),
+            iconView.heightAnchor.constraint(equalToConstant: 24),
             
             titleLabel.centerYAnchor.constraint(equalTo: timeLabel.centerYAnchor),
             titleLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 8),
-            titleLabel.trailingAnchor.constraint(equalTo: priceLabel.leadingAnchor, constant: -8),
+            // 標題右邊留給價格，避免重疊
+            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: priceLabel.leadingAnchor, constant: -8),
             
             locationLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
             locationLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            locationLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
-            locationLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -12),
+            locationLabel.trailingAnchor.constraint(lessThanOrEqualTo: priceLabel.leadingAnchor, constant: -8),
             
             priceLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 12),
             priceLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
-            priceLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 60)
+            priceLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 60),
+            
+            // 連結提示放在右下角
+            linkHintLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -8),
+            linkHintLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
+            linkHintLabel.leadingAnchor.constraint(greaterThanOrEqualTo: containerView.leadingAnchor, constant: 20)
         ])
+    }
+    
+    override func setHighlighted(_ highlighted: Bool, animated: Bool) {
+        // 自定義點擊效果：讓卡片稍微縮小
+        if selectionStyle != .none {
+            UIView.animate(withDuration: 0.1) {
+                self.containerView.transform = highlighted ? CGAffineTransform(scaleX: 0.96, y: 0.96) : .identity
+            }
+        }
     }
     
     func configure(with item: ItineraryItem) {
@@ -126,11 +153,25 @@ class ItineraryCell: UITableViewCell {
         case "transport": imageName = "tram.fill"
         case "hotel": imageName = "bed.double.fill"
         case "restaurant": imageName = "fork.knife"
-        default: imageName = "circle.fill"
+        default: imageName = "mappin.circle.fill"
         }
         
-        let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .semibold)
+        let config = UIImage.SymbolConfiguration(pointSize: 16, weight: .semibold)
         iconView.image = UIImage(systemName: imageName, withConfiguration: config)
         iconView.tintColor = item.type == "transport" ? Theme.secondaryAccent : Theme.accentColor
+        
+        // URL 邏輯處理
+        if let urlStr = item.locationURL, !urlStr.isEmpty {
+            // 有 URL：顯示提示，並允許 Cell 被點擊
+            linkHintLabel.text = "Link 🔗" // 這裡也可以用 localized
+            linkHintLabel.isHidden = false
+            self.selectionStyle = .default // 這樣 TableView 才會觸發點擊效果 (雖然我們在 setupUI 設 none，但透過 setHighlighted 手動控制動畫)
+            self.isUserInteractionEnabled = true
+        } else {
+            // 無 URL：隱藏提示，Cell 看起來不可點
+            linkHintLabel.isHidden = true
+            self.selectionStyle = .none
+            // 注意：不要設 isUserInteractionEnabled = false，否則滑動刪除會失效
+        }
     }
 }
