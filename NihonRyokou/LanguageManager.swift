@@ -9,8 +9,8 @@ class LanguageManager {
         case system = "system"
         case english = "en"
         case chinese = "zh-Hant"
-        case korean = "ko"      // 保留原本的韓文
-        case japanese = "ja"    // 新增日文
+        case korean = "ko"
+        case japanese = "ja"
         
         var displayName: String {
             switch self {

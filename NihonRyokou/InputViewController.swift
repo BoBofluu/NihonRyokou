@@ -4,15 +4,15 @@ class InputViewController: UIViewController {
     
     var onSave: (() -> Void)?
     
+    // 主容器：加大陰影與圓角
     private let containerView: UIView = {
         let view = UIView()
         view.backgroundColor = .white
-        view.layer.cornerRadius = Theme.cornerRadius
-        // 加強陰影效果，更立體
+        view.layer.cornerRadius = 24 // 更圓
         view.layer.shadowColor = Theme.accentColor.cgColor
         view.layer.shadowOpacity = 0.15
-        view.layer.shadowOffset = CGSize(width: 0, height: 4)
-        view.layer.shadowRadius = 8
+        view.layer.shadowOffset = CGSize(width: 0, height: 8)
+        view.layer.shadowRadius = 12
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -29,47 +29,48 @@ class InputViewController: UIViewController {
         return sc
     }()
     
+    // 日期選擇器容器 (為了美化背景)
+    private let dateContainer: UIView = {
+        let view = UIView()
+        view.backgroundColor = Theme.primaryColor // 淡色背景
+        view.layer.cornerRadius = 12
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
     private let datePicker: UIDatePicker = {
         let dp = UIDatePicker()
         dp.datePickerMode = .dateAndTime
         dp.preferredDatePickerStyle = .compact
+        dp.tintColor = Theme.accentColor
         dp.translatesAutoresizingMaskIntoConstraints = false
         return dp
     }()
     
-    private let titleField: UITextField = {
+    // 輔助函式：建立可愛風格的輸入框
+    private func createCuteTextField(placeholder: String, keyboardType: UIKeyboardType = .default) -> UITextField {
         let tf = UITextField()
-        tf.placeholder = "Title"
-        tf.borderStyle = .roundedRect
-        tf.translatesAutoresizingMaskIntoConstraints = false
-        return tf
-    }()
-    
-    private let locationField: UITextField = {
-        let tf = UITextField()
-        tf.placeholder = "Location"
-        tf.borderStyle = .roundedRect
-        tf.translatesAutoresizingMaskIntoConstraints = false
-        return tf
-    }()
-    
-    private let priceField: UITextField = {
-        let tf = UITextField()
-        tf.placeholder = "Price (JPY)"
-        tf.borderStyle = .roundedRect
-        tf.keyboardType = .numberPad
-        tf.translatesAutoresizingMaskIntoConstraints = false
-        return tf
-    }()
-    
-    private let urlField: UITextField = {
-        let tf = UITextField()
-        tf.placeholder = "URL (Optional)"
-        tf.borderStyle = .roundedRect
+        tf.placeholder = placeholder
+        tf.borderStyle = .none // 移除預設邊框，自己畫
+        tf.backgroundColor = UIColor(white: 0.96, alpha: 1.0) // 淺灰背景
+        tf.layer.cornerRadius = 12 // 圓角
+        tf.keyboardType = keyboardType
         tf.autocapitalizationType = .none
+        
+        // 增加左側內距
+        let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: tf.frame.height))
+        tf.leftView = paddingView
+        tf.leftViewMode = .always
+        
         tf.translatesAutoresizingMaskIntoConstraints = false
         return tf
-    }()
+    }
+    
+    // 使用 lazy var 搭配輔助函式建立欄位
+    private lazy var titleField = createCuteTextField(placeholder: "Title")
+    private lazy var locationField = createCuteTextField(placeholder: "Location")
+    private lazy var priceField = createCuteTextField(placeholder: "Price", keyboardType: .numberPad) // 限制數字輸入
+    private lazy var urlField = createCuteTextField(placeholder: "URL")
     
     private let saveButton: UIButton = {
         let btn = UIButton(type: .system)
@@ -77,11 +78,11 @@ class InputViewController: UIViewController {
         btn.backgroundColor = Theme.accentColor
         btn.setTitleColor(.white, for: .normal)
         btn.titleLabel?.font = Theme.font(size: 18, weight: .bold)
-        btn.layer.cornerRadius = 25
+        btn.layer.cornerRadius = 28 // 變成膠囊形狀
         btn.layer.shadowColor = Theme.accentColor.cgColor
-        btn.layer.shadowOpacity = 0.3
+        btn.layer.shadowOpacity = 0.4
         btn.layer.shadowOffset = CGSize(width: 0, height: 4)
-        btn.layer.shadowRadius = 6
+        btn.layer.shadowRadius = 8
         btn.translatesAutoresizingMaskIntoConstraints = false
         return btn
     }()
@@ -92,9 +93,8 @@ class InputViewController: UIViewController {
         title = "add_item_title".localized
         
         setupUI()
-        saveButton.addTarget(self, action: #selector(handleSave), for: .touchUpInside)
-        segmentedControl.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
-        segmentChanged() // Initial state
+        setupActions()
+        segmentChanged() // 初始化文字
         
         // 點擊背景收起鍵盤
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
@@ -105,83 +105,94 @@ class InputViewController: UIViewController {
         view.endEditing(true)
     }
     
+    private func setupActions() {
+        saveButton.addTarget(self, action: #selector(handleSave), for: .touchUpInside)
+        segmentedControl.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
+    }
+    
     private func setupUI() {
         view.addSubview(containerView)
         containerView.addSubview(segmentedControl)
-        containerView.addSubview(datePicker)
+        
+        containerView.addSubview(dateContainer)
+        dateContainer.addSubview(datePicker)
+        
         containerView.addSubview(titleField)
         containerView.addSubview(locationField)
         containerView.addSubview(priceField)
         containerView.addSubview(urlField)
+        
         view.addSubview(saveButton)
         
-        let fieldHeight: CGFloat = 44
+        let fieldHeight: CGFloat = 50 // 加高輸入框
+        let spacing: CGFloat = 24 // 加大間距
         
         NSLayoutConstraint.activate([
+            // 容器
             containerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
-            containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            containerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
+            containerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
             
-            segmentedControl.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 20),
+            // 分頁控制
+            segmentedControl.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 24),
             segmentedControl.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
             segmentedControl.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
-            segmentedControl.heightAnchor.constraint(equalToConstant: 36),
+            segmentedControl.heightAnchor.constraint(equalToConstant: 40),
             
-            datePicker.topAnchor.constraint(equalTo: segmentedControl.bottomAnchor, constant: 20),
-            datePicker.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
+            // 日期區塊
+            dateContainer.topAnchor.constraint(equalTo: segmentedControl.bottomAnchor, constant: spacing),
+            dateContainer.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
+            dateContainer.trailingAnchor.constraint(lessThanOrEqualTo: containerView.trailingAnchor, constant: -20),
+            dateContainer.heightAnchor.constraint(equalToConstant: 40),
             
-            titleField.topAnchor.constraint(equalTo: datePicker.bottomAnchor, constant: 20),
+            datePicker.centerYAnchor.constraint(equalTo: dateContainer.centerYAnchor),
+            datePicker.leadingAnchor.constraint(equalTo: dateContainer.leadingAnchor, constant: 8),
+            datePicker.trailingAnchor.constraint(equalTo: dateContainer.trailingAnchor, constant: -8),
+            
+            // 輸入欄位 (加大間距)
+            titleField.topAnchor.constraint(equalTo: dateContainer.bottomAnchor, constant: spacing),
             titleField.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
             titleField.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
             titleField.heightAnchor.constraint(equalToConstant: fieldHeight),
             
-            locationField.topAnchor.constraint(equalTo: titleField.bottomAnchor, constant: 12),
+            locationField.topAnchor.constraint(equalTo: titleField.bottomAnchor, constant: 16),
             locationField.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
             locationField.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
             locationField.heightAnchor.constraint(equalToConstant: fieldHeight),
             
-            priceField.topAnchor.constraint(equalTo: locationField.bottomAnchor, constant: 12),
+            priceField.topAnchor.constraint(equalTo: locationField.bottomAnchor, constant: 16),
             priceField.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
             priceField.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
             priceField.heightAnchor.constraint(equalToConstant: fieldHeight),
             
-            urlField.topAnchor.constraint(equalTo: priceField.bottomAnchor, constant: 12),
+            urlField.topAnchor.constraint(equalTo: priceField.bottomAnchor, constant: 16),
             urlField.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
             urlField.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
             urlField.heightAnchor.constraint(equalToConstant: fieldHeight),
             
-            // 讓 Container 包住所有內容
-            urlField.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -20),
+            urlField.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -30), // 底部留白
             
+            // 儲存按鈕 (懸浮在容器下方)
             saveButton.topAnchor.constraint(equalTo: containerView.bottomAnchor, constant: 30),
             saveButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            saveButton.widthAnchor.constraint(equalToConstant: 200),
-            saveButton.heightAnchor.constraint(equalToConstant: 50)
+            saveButton.widthAnchor.constraint(equalToConstant: 220),
+            saveButton.heightAnchor.constraint(equalToConstant: 56)
         ])
     }
     
     @objc private func segmentChanged() {
-            // 修正：所有選項都要可以輸入 URL，所以不再設定 urlField.isHidden
-            let index = segmentedControl.selectedSegmentIndex
-            
-            switch index {
-            case 0: // Transport
-                titleField.placeholder = "title_placeholder_transport".localized
-            case 1: // Hotel
-                titleField.placeholder = "title_placeholder_hotel".localized
-            case 2: // Restaurant
-                titleField.placeholder = "title_placeholder_restaurant".localized
-            default:
-                titleField.placeholder = "title_placeholder_default".localized
-            }
-            
-            locationField.placeholder = "location_placeholder".localized
-            priceField.placeholder = "price_placeholder".localized
-            urlField.placeholder = "url_placeholder".localized // 確保這行會執行
-            
-            // 如果您之前的程式碼有 urlField.isHidden = ... 請務必移除
-            urlField.isHidden = false
+        let index = segmentedControl.selectedSegmentIndex
+        switch index {
+        case 0: titleField.placeholder = "title_placeholder_transport".localized
+        case 1: titleField.placeholder = "title_placeholder_hotel".localized
+        case 2: titleField.placeholder = "title_placeholder_restaurant".localized
+        default: titleField.placeholder = "title_placeholder_default".localized
         }
+        
+        locationField.placeholder = "location_placeholder".localized
+        priceField.placeholder = "price_placeholder".localized
+        urlField.placeholder = "url_placeholder".localized
+    }
     
     @objc private func handleSave() {
         guard let title = titleField.text, !title.isEmpty else { return }
@@ -195,7 +206,6 @@ class InputViewController: UIViewController {
         default: type = "other"
         }
         
-        // 確保 URL 字串有值才傳入
         let urlString = urlField.text?.isEmpty == false ? urlField.text : nil
         
         _ = CoreDataManager.shared.createItem(
@@ -215,12 +225,10 @@ class InputViewController: UIViewController {
         priceField.text = ""
         urlField.text = ""
         
-        // 簡單的成功震動回饋
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
         
-        // 使用系統原生的 Alert 或 Toast 提示
-        let alert = UIAlertController(title: nil, message: "Added successfully! ✨", preferredStyle: .alert)
+        let alert = UIAlertController(title: nil, message: "Added! ✨", preferredStyle: .alert)
         present(alert, animated: true)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             alert.dismiss(animated: true)
