@@ -4,6 +4,9 @@ class ItineraryCell: UITableViewCell {
     
     static let identifier = "ItineraryCell"
     
+    // 新增：刪除按鈕被點擊時的 Callback
+    var onDelete: (() -> Void)?
+    
     private let containerView: UIView = {
         let view = UIView()
         view.backgroundColor = .white
@@ -18,7 +21,6 @@ class ItineraryCell: UITableViewCell {
     
     private let timeLabel: UILabel = {
         let label = UILabel()
-        // 使用等寬數字字型，讓時間排列整齊
         label.font = UIFont.monospacedDigitSystemFont(ofSize: 14, weight: .bold)
         label.textColor = Theme.textDark
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -59,7 +61,6 @@ class ItineraryCell: UITableViewCell {
         return label
     }()
     
-    // 新增：連結提示標籤
     private let linkHintLabel: UILabel = {
         let label = UILabel()
         label.font = Theme.font(size: 12, weight: .regular)
@@ -69,13 +70,32 @@ class ItineraryCell: UITableViewCell {
         return label
     }()
     
+    // 新增：實體刪除按鈕 (垃圾桶 Icon)
+    private let deleteButton: UIButton = {
+        let btn = UIButton(type: .system)
+        let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .medium)
+        btn.setImage(UIImage(systemName: "trash", withConfiguration: config), for: .normal)
+        btn.tintColor = .systemGray4 // 淺灰色，不要太搶眼
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        // 增加點擊範圍
+        btn.contentEdgeInsets = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
+        return btn
+    }()
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupUI()
+        
+        // 綁定按鈕事件
+        deleteButton.addTarget(self, action: #selector(deleteButtonTapped), for: .touchUpInside)
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    @objc private func deleteButtonTapped() {
+        onDelete?()
     }
     
     private func setupUI() {
@@ -88,7 +108,8 @@ class ItineraryCell: UITableViewCell {
         containerView.addSubview(titleLabel)
         containerView.addSubview(locationLabel)
         containerView.addSubview(priceLabel)
-        containerView.addSubview(linkHintLabel) // Add to view
+        containerView.addSubview(linkHintLabel)
+        containerView.addSubview(deleteButton) // 加入按鈕
         
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
@@ -107,7 +128,6 @@ class ItineraryCell: UITableViewCell {
             
             titleLabel.centerYAnchor.constraint(equalTo: timeLabel.centerYAnchor),
             titleLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 8),
-            // 標題右邊留給價格，避免重疊
             titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: priceLabel.leadingAnchor, constant: -8),
             
             locationLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
@@ -118,15 +138,18 @@ class ItineraryCell: UITableViewCell {
             priceLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
             priceLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 60),
             
-            // 連結提示放在右下角
-            linkHintLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -8),
-            linkHintLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
+            // 刪除按鈕固定在右下角
+            deleteButton.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -4),
+            deleteButton.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -8),
+            
+            // 連結提示改放在刪除按鈕的左邊
+            linkHintLabel.centerYAnchor.constraint(equalTo: deleteButton.centerYAnchor),
+            linkHintLabel.trailingAnchor.constraint(equalTo: deleteButton.leadingAnchor, constant: -4),
             linkHintLabel.leadingAnchor.constraint(greaterThanOrEqualTo: containerView.leadingAnchor, constant: 20)
         ])
     }
     
     override func setHighlighted(_ highlighted: Bool, animated: Bool) {
-        // 自定義點擊效果：讓卡片稍微縮小
         if selectionStyle != .none {
             UIView.animate(withDuration: 0.1) {
                 self.containerView.transform = highlighted ? CGAffineTransform(scaleX: 0.96, y: 0.96) : .identity
@@ -147,7 +170,6 @@ class ItineraryCell: UITableViewCell {
         locationLabel.text = item.locationName
         priceLabel.text = "¥\(Int(item.price))"
         
-        // Icon based on type
         let imageName: String
         switch item.type {
         case "transport": imageName = "tram.fill"
@@ -160,14 +182,11 @@ class ItineraryCell: UITableViewCell {
         iconView.image = UIImage(systemName: imageName, withConfiguration: config)
         iconView.tintColor = item.type == "transport" ? Theme.secondaryAccent : Theme.accentColor
         
-        // URL 邏輯處理
         if let urlStr = item.locationURL, !urlStr.isEmpty {
-            // 有 URL：顯示提示，開啟點擊
             linkHintLabel.text = "Link 🔗"
             linkHintLabel.isHidden = false
             self.selectionStyle = .default
         } else {
-            // 無 URL：隱藏提示，關閉點擊效果
             linkHintLabel.isHidden = true
             self.selectionStyle = .none
         }

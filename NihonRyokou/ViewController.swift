@@ -9,7 +9,7 @@ struct ItinerarySection {
 }
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-
+    
     private let tableView: UITableView = {
         let tv = UITableView(frame: .zero, style: .insetGrouped)
         tv.backgroundColor = Theme.primaryColor
@@ -119,8 +119,32 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         guard let cell = tableView.dequeueReusableCell(withIdentifier: ItineraryCell.identifier, for: indexPath) as? ItineraryCell else {
             return UITableViewCell()
         }
-        cell.configure(with: sections[indexPath.section].items[indexPath.row])
+        let item = sections[indexPath.section].items[indexPath.row]
+        cell.configure(with: item)
+        
+        // 處理刪除按鈕點擊事件
+        cell.onDelete = { [weak self] in
+            guard let self = self else { return }
+            self.showDeleteConfirmation(at: indexPath)
+        }
+        
         return cell
+    }
+    
+    private func showDeleteConfirmation(at indexPath: IndexPath) {
+        let alert = UIAlertController(
+            title: "delete_confirm_title".localized,
+            message: "delete_confirm_message".localized,
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "cancel".localized, style: .cancel, handler: nil))
+        
+        alert.addAction(UIAlertAction(title: "confirm".localized, style: .destructive) { [weak self] _ in
+            self?.performDelete(at: indexPath)
+        })
+        
+        present(alert, animated: true)
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -136,32 +160,12 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     // MARK: - 刪除功能 (Swipe Action with Alert)
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        
-        let deleteAction = UIContextualAction(style: .destructive, title: "delete_action".localized) { [weak self] (action, view, completionHandler) in
-            guard let self = self else { return }
-            
-            // 彈跳確認視窗
-            let alert = UIAlertController(
-                title: "delete_confirm_title".localized,
-                message: "delete_confirm_message".localized,
-                preferredStyle: .alert
-            )
-            
-            alert.addAction(UIAlertAction(title: "cancel".localized, style: .cancel) { _ in
-                completionHandler(false)
-            })
-            
-            alert.addAction(UIAlertAction(title: "confirm".localized, style: .destructive) { _ in
-                self.performDelete(at: indexPath)
-                completionHandler(true)
-            })
-            
-            self.present(alert, animated: true)
+        let deleteAction = UIContextualAction(style: .destructive, title: "delete_action".localized) { [weak self] (_, _, completion) in
+            self?.showDeleteConfirmation(at: indexPath)
+            completion(true)
         }
-        
         deleteAction.backgroundColor = .systemRed
-        deleteAction.image = UIImage(systemName: "trash") // 系統圖示，非 Emoji
-        
+        deleteAction.image = UIImage(systemName: "trash")
         return UISwipeActionsConfiguration(actions: [deleteAction])
     }
     
