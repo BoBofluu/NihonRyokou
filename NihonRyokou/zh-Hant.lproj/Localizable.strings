@@ -23,3 +23,12 @@
 "delete_confirm_message" = "您確定要刪除這個項目嗎？";
 "confirm" = "確認刪除";
 "cancel" = "取消";
+
+/* 提示與錯誤訊息 */
+"alert_added_message" = "已新增！";
+"alert_error_title" = "輸入錯誤";
+"alert_title_empty" = "請輸入標題";
+"alert_price_invalid" = "價格必須是數字";
+"alert_url_invalid" = "連結必須以 https:// 或 http:// 開頭";
+"ok_action" = "確定";
+"date_placeholder" = "日期";

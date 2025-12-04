@@ -23,3 +23,12 @@
 "delete_confirm_message" = "本当にこの項目を削除しますか？";
 "confirm" = "削除";
 "cancel" = "キャンセル";
+
+/* メッセージとエラー */
+"alert_added_message" = "追加しました！";
+"alert_error_title" = "入力エラー";
+"alert_title_empty" = "タイトルを入力してください";
+"alert_price_invalid" = "金額は数字で入力してください";
+"alert_url_invalid" = "URLは https:// または http:// で始まる必要があります";
+"ok_action" = "OK";
+"date_placeholder" = "日付";

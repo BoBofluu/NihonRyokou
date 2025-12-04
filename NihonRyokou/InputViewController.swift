@@ -4,7 +4,7 @@ class InputViewController: UIViewController {
     
     var onSave: (() -> Void)?
     
-    // 主容器：卡片式背景
+    // 主容器
     private let containerView: UIView = {
         let view = UIView()
         view.backgroundColor = .white
@@ -29,18 +29,16 @@ class InputViewController: UIViewController {
         return sc
     }()
     
-    // MARK: - Date Picker 區域 (修改重點)
+    // MARK: - Date Picker
     
-    // 1. 建立一個灰色圓角容器 (Wrapper)，讓日期選擇器看起來像一個欄位
     private let dateInputWrapper: UIView = {
         let view = UIView()
-        view.backgroundColor = UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1.0) // 淺灰背景
+        view.backgroundColor = UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1.0)
         view.layer.cornerRadius = 12
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
-    // 2. 左側的日曆 Icon
     private let dateIconView: UIImageView = {
         let iv = UIImageView(image: UIImage(systemName: "calendar"))
         iv.tintColor = Theme.textLight
@@ -49,23 +47,22 @@ class InputViewController: UIViewController {
         return iv
     }()
     
-    // 3. 原生 DatePicker (.compact 風格 = 彈跳視窗)
     private let datePicker: UIDatePicker = {
         let dp = UIDatePicker()
         dp.datePickerMode = .dateAndTime
-        dp.preferredDatePickerStyle = .compact // 保持您喜歡的彈跳視窗
+        dp.preferredDatePickerStyle = .compact
         dp.tintColor = Theme.accentColor
         dp.locale = Locale.current
         dp.translatesAutoresizingMaskIntoConstraints = false
-        // 讓內容靠左，貼近我們的 Icon
         dp.contentHorizontalAlignment = .leading
         return dp
     }()
     
-    // MARK: - 其他輸入欄位
+    // MARK: - Input Fields
     
     private func createCuteTextField(placeholder: String, keyboardType: UIKeyboardType = .default, iconName: String? = nil) -> UITextField {
         let tf = UITextField()
+        // 這裡直接傳入的 placeholder 已經是 localized 的字串
         tf.placeholder = placeholder
         tf.font = Theme.font(size: 16, weight: .medium)
         tf.textColor = Theme.textDark
@@ -93,10 +90,11 @@ class InputViewController: UIViewController {
         return tf
     }
     
-    private lazy var titleField = createCuteTextField(placeholder: "Title", iconName: "pencil")
-    private lazy var locationField = createCuteTextField(placeholder: "Location", iconName: "mappin.and.ellipse")
-    private lazy var priceField = createCuteTextField(placeholder: "Price", keyboardType: .numberPad, iconName: "yensign.circle")
-    private lazy var urlField = createCuteTextField(placeholder: "URL", iconName: "link")
+    // 初始化時就使用多語言 Key
+    private lazy var titleField = createCuteTextField(placeholder: "title_placeholder_default".localized, iconName: "pencil")
+    private lazy var locationField = createCuteTextField(placeholder: "location_placeholder".localized, iconName: "mappin.and.ellipse")
+    private lazy var priceField = createCuteTextField(placeholder: "price_placeholder".localized, keyboardType: .numberPad, iconName: "yensign.circle")
+    private lazy var urlField = createCuteTextField(placeholder: "url_placeholder".localized, iconName: "link")
     
     private let saveButton: UIButton = {
         let btn = UIButton(type: .system)
@@ -131,7 +129,6 @@ class InputViewController: UIViewController {
         view.endEditing(true)
     }
     
-    // 價格鍵盤加上 Done 按鈕
     private func setupKeyboardToolbar() {
         let toolbar = UIToolbar()
         toolbar.sizeToFit()
@@ -151,7 +148,6 @@ class InputViewController: UIViewController {
         view.addSubview(containerView)
         containerView.addSubview(segmentedControl)
         
-        // 將 DatePicker 放入 Wrapper 中
         containerView.addSubview(dateInputWrapper)
         dateInputWrapper.addSubview(dateIconView)
         dateInputWrapper.addSubview(datePicker)
@@ -175,24 +171,18 @@ class InputViewController: UIViewController {
             segmentedControl.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
             segmentedControl.heightAnchor.constraint(equalToConstant: 40),
             
-            // --- Date Wrapper 佈局 ---
-            // 讓它長得跟下面的 TextField 一樣高、一樣寬
             dateInputWrapper.topAnchor.constraint(equalTo: segmentedControl.bottomAnchor, constant: spacing),
             dateInputWrapper.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
             dateInputWrapper.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
             dateInputWrapper.heightAnchor.constraint(equalToConstant: fieldHeight),
             
-            // Icon 位置
             dateIconView.leadingAnchor.constraint(equalTo: dateInputWrapper.leadingAnchor, constant: 12),
             dateIconView.centerYAnchor.constraint(equalTo: dateInputWrapper.centerYAnchor),
             dateIconView.widthAnchor.constraint(equalToConstant: 20),
             dateIconView.heightAnchor.constraint(equalToConstant: 20),
             
-            // DatePicker 位置：靠左對齊 Icon，垂直置中
             datePicker.leadingAnchor.constraint(equalTo: dateIconView.trailingAnchor, constant: 12),
             datePicker.centerYAnchor.constraint(equalTo: dateInputWrapper.centerYAnchor),
-            // 不設 trailing，讓它自然延伸，避免被拉伸
-            // -----------------------
             
             titleField.topAnchor.constraint(equalTo: dateInputWrapper.bottomAnchor, constant: spacing),
             titleField.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
@@ -237,10 +227,38 @@ class InputViewController: UIViewController {
         urlField.placeholder = "url_placeholder".localized
     }
     
+    // MARK: - Validation & Save Logic
     @objc private func handleSave() {
-        guard let title = titleField.text, !title.isEmpty else { return }
-        let price = Double(priceField.text ?? "") ?? 0.0
+        // 1. 標題檢查
+        guard let title = titleField.text, !title.isEmpty else {
+            showAlert(message: "alert_title_empty".localized)
+            return
+        }
         
+        // 2. 價格檢查：確認是有效數字
+        let priceText = priceField.text ?? ""
+        var price: Double = 0.0
+        
+        if !priceText.isEmpty {
+            guard let validPrice = Double(priceText) else {
+                showAlert(message: "alert_price_invalid".localized)
+                return
+            }
+            price = validPrice
+        }
+        
+        // 3. URL 檢查：必須以 http 開頭
+        var urlString: String? = nil
+        if let text = urlField.text, !text.isEmpty {
+            let lowerText = text.lowercased()
+            if !lowerText.hasPrefix("https://") && !lowerText.hasPrefix("http://") {
+                showAlert(message: "alert_url_invalid".localized)
+                return
+            }
+            urlString = text
+        }
+        
+        // 4. 儲存
         let type: String
         switch segmentedControl.selectedSegmentIndex {
         case 0: type = "transport"
@@ -249,11 +267,9 @@ class InputViewController: UIViewController {
         default: type = "other"
         }
         
-        let urlString = urlField.text?.isEmpty == false ? urlField.text : nil
-        
         _ = CoreDataManager.shared.createItem(
             type: type,
-            timestamp: datePicker.date, // 直接取用 DatePicker 的值
+            timestamp: datePicker.date,
             title: title,
             locationName: locationField.text ?? "",
             price: price,
@@ -262,19 +278,27 @@ class InputViewController: UIViewController {
         
         onSave?()
         
+        // 清空並重置
         titleField.text = ""
         locationField.text = ""
         priceField.text = ""
         urlField.text = ""
-        datePicker.date = Date() // 重置時間
+        datePicker.date = Date()
         
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
         
-        let alert = UIAlertController(title: nil, message: "Added! ✨", preferredStyle: .alert)
+        // 使用多語言 Key：alert_added_message
+        let alert = UIAlertController(title: nil, message: "alert_added_message".localized, preferredStyle: .alert)
         present(alert, animated: true)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             alert.dismiss(animated: true)
         }
+    }
+    
+    private func showAlert(message: String) {
+        let alert = UIAlertController(title: "alert_error_title".localized, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "ok_action".localized, style: .default))
+        present(alert, animated: true)
     }
 }

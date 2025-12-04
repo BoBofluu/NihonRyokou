@@ -15,7 +15,7 @@
 "settings_title" = "설정";
 "language_setting" = "언어 설정";
 "itinerary_tab" = "일정";
-"input_tab" = "추가 ➕";
+"input_tab" = "추가";
 
 /* 刪除確認視窗 (新增部分) */
 "total" = "합계";
@@ -23,3 +23,12 @@
 "delete_confirm_message" = "정말 이 항목을 삭제하시겠습니까?";
 "confirm" = "삭제";
 "cancel" = "취소";
+
+/* 알림 및 오류 */
+"alert_added_message" = "추가되었습니다!";
+"alert_error_title" = "입력 오류";
+"alert_title_empty" = "제목을 입력해주세요";
+"alert_price_invalid" = "가격은 숫자로 입력해주세요";
+"alert_url_invalid" = "URL은 https:// 또는 http:// 로 시작해야 합니다";
+"ok_action" = "확인";
+"date_placeholder" = "날짜";
