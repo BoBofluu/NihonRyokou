@@ -156,14 +156,13 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let item = sections[indexPath.section].items[indexPath.row]
         
-        if let urlString = item.locationURL, !urlString.isEmpty, let url = URL(string: urlString) {
-            let safariVC = SFSafariViewController(url: url)
-            safariVC.preferredControlTintColor = Theme.accentColor
-            present(safariVC, animated: true)
-        }
+        let item = sections[indexPath.section].items[indexPath.row]
+        let detailVC = DetailViewController(item: item)
+        navigationController?.pushViewController(detailVC, animated: true)
     }
+    
+    
     
     // MARK: - 刪除功能 (Swipe Action with Alert)
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
@@ -214,6 +213,12 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 110
+        let item = sections[indexPath.section].items[indexPath.row]
+        
+        if item.type == "transport" {
+            return 55
+        } else {
+            return 110
+        }
     }
 }
