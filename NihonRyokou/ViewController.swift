@@ -23,7 +23,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = Theme.primaryColor
-        title = "app_title".localized
+        
+        navigationItem.title = "app_title".localized
+        
         navigationController?.navigationBar.prefersLargeTitles = true
         setupTableView()
     }
@@ -31,7 +33,8 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         fetchData()
-        title = "app_title".localized // 確保語言切換後標題更新
+        
+        navigationItem.title = "app_title".localized
     }
     
     private func setupTableView() {
@@ -79,7 +82,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         return sections[section].items.count
     }
     
-    // Header 設定：包含日期與多語言 Total
+    // Header 設定：修改日期格式以顯示星期
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let headerView = UIView()
         
@@ -90,13 +93,13 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         
         let sectionData = sections[section]
         let dateFormatter = DateFormatter()
-        dateFormatter.dateStyle = .medium
-        dateFormatter.timeStyle = .none
         dateFormatter.locale = Locale.current
+        // 修改：顯示星期 (例：2025/12/04 (Thu))
+        dateFormatter.dateFormat = "yyyy/MM/dd (EEE)"
         
         let dateStr = dateFormatter.string(from: sectionData.date)
         let priceStr = "¥\(Int(sectionData.totalAmount))"
-        let totalLabel = "total".localized // 使用多語言 Key
+        let totalLabel = "total".localized
         
         label.text = "\(dateStr)    \(totalLabel): \(priceStr)"
         
@@ -120,22 +123,31 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             return UITableViewCell()
         }
         
-        // 這裡要先檢查索引是否安全，防止極端情況下的崩潰
         if indexPath.section < sections.count && indexPath.row < sections[indexPath.section].items.count {
             let item = sections[indexPath.section].items[indexPath.row]
             cell.configure(with: item)
         }
         
-        // 【關鍵修正】
-        // 不要直接傳入 indexPath，而是要在點擊當下獲取 Cell 最新的位置
-        cell.onDelete = { [weak self, weak cell] in
-            guard let self = self, let cell = cell,
-                  let currentIndexPath = self.tableView.indexPath(for: cell) else { return }
-            
-            self.showDeleteConfirmation(at: currentIndexPath)
-        }
-        
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        
+        let item = sections[indexPath.section].items[indexPath.row]
+        let detailVC = DetailViewController(item: item)
+        navigationController?.pushViewController(detailVC, animated: true)
+    }
+    
+    // MARK: - 刪除功能
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: "delete_action".localized) { [weak self] (_, _, completion) in
+            self?.showDeleteConfirmation(at: indexPath)
+            completion(true)
+        }
+        deleteAction.backgroundColor = .systemRed
+        deleteAction.image = UIImage(systemName: "trash")
+        return UISwipeActionsConfiguration(actions: [deleteAction])
     }
     
     private func showDeleteConfirmation(at indexPath: IndexPath) {
@@ -154,37 +166,11 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         present(alert, animated: true)
     }
     
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
+    private func performDelete(at indexPath: IndexPath) {
+        guard indexPath.section < sections.count,
+              indexPath.row < sections[indexPath.section].items.count else { return }
         
         let item = sections[indexPath.section].items[indexPath.row]
-        let detailVC = DetailViewController(item: item)
-        navigationController?.pushViewController(detailVC, animated: true)
-    }
-    
-    
-    
-    // MARK: - 刪除功能 (Swipe Action with Alert)
-    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        let deleteAction = UIContextualAction(style: .destructive, title: "delete_action".localized) { [weak self] (_, _, completion) in
-            self?.showDeleteConfirmation(at: indexPath)
-            completion(true)
-        }
-        deleteAction.backgroundColor = .systemRed
-        deleteAction.image = UIImage(systemName: "trash")
-        return UISwipeActionsConfiguration(actions: [deleteAction])
-    }
-    
-    
-    private func performDelete(at indexPath: IndexPath) {
-        // 雙重保險：檢查索引是否有效
-        guard indexPath.section < sections.count,
-              indexPath.row < sections[indexPath.section].items.count else {
-            print("Error: Invalid index path for deletion: \(indexPath)")
-            return
-        }
-        
-        let item = sections[indexPath.section].items[indexPath.row] // 這裡現在安全了
         
         CoreDataManager.shared.deleteItem(item)
         sections[indexPath.section].items.remove(at: indexPath.row)
@@ -202,7 +188,6 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             sections[indexPath.section] = ItinerarySection(date: oldDate, totalAmount: newTotal, items: newItems)
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                // 加一個額外檢查，避免 Section 已經不見了還去刷新
                 if indexPath.section < self.sections.count {
                     UIView.performWithoutAnimation {
                         self.tableView.reloadSections(IndexSet(integer: indexPath.section), with: .none)

@@ -1,10 +1,3 @@
-//
-//  DetailViewController.swift
-//  NihonRyokou
-//
-//  Created by m.li on 2025/12/04.
-//
-
 import UIKit
 import WebKit
 
@@ -15,12 +8,15 @@ class DetailViewController: UIViewController {
     private let scrollView = UIScrollView()
     private let contentView = UIView()
     
-    private let imageView: UIImageView = {
+    private lazy var imageView: UIImageView = {
         let iv = UIImageView()
         iv.contentMode = .scaleAspectFill
         iv.clipsToBounds = true
         iv.backgroundColor = .systemGray6
         iv.translatesAutoresizingMaskIntoConstraints = false
+        iv.isUserInteractionEnabled = true
+        let tap = UITapGestureRecognizer(target: self, action: #selector(didTapImage))
+        iv.addGestureRecognizer(tap)
         return iv
     }()
     
@@ -28,6 +24,7 @@ class DetailViewController: UIViewController {
         let label = UILabel()
         label.font = Theme.font(size: 24, weight: .bold)
         label.numberOfLines = 0
+        label.textColor = Theme.textDark
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -57,7 +54,6 @@ class DetailViewController: UIViewController {
         return label
     }()
     
-    // 用來顯示 Google Map
     private lazy var webView: WKWebView = {
         let web = WKWebView()
         web.translatesAutoresizingMaskIntoConstraints = false
@@ -80,9 +76,21 @@ class DetailViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .white
         title = "Details"
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "pencil"), style: .plain, target: self, action: #selector(didTapEdit))
         
         setupUI()
         configureData()
+    }
+    
+    @objc private func didTapEdit() {
+        print("Edit button tapped")
+    }
+    
+    @objc private func didTapImage() {
+        guard let image = imageView.image else { return }
+        let previewVC = ImagePreviewViewController(image: image)
+        previewVC.modalPresentationStyle = .fullScreen
+        present(previewVC, animated: true)
     }
     
     private func setupUI() {
@@ -104,13 +112,12 @@ class DetailViewController: UIViewController {
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
-            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
-            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
-            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
-            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+            contentView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
+            contentView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
             
-            // Photo: 寬度填滿，高度固定 (例如 300)
             imageView.topAnchor.constraint(equalTo: contentView.topAnchor),
             imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
@@ -126,16 +133,16 @@ class DetailViewController: UIViewController {
             priceLabel.centerYAnchor.constraint(equalTo: timeLabel.centerYAnchor),
             priceLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
-            memoLabel.topAnchor.constraint(equalTo: timeLabel.bottomAnchor, constant: 20),
+            memoLabel.topAnchor.constraint(equalTo: timeLabel.bottomAnchor, constant: 24),
             memoLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             memoLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
-            // Map WebView
-            webView.topAnchor.constraint(equalTo: memoLabel.bottomAnchor, constant: 20),
+            webView.topAnchor.constraint(equalTo: memoLabel.bottomAnchor, constant: 24),
             webView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             webView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            webView.heightAnchor.constraint(equalToConstant: 250),
-            webView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -30)
+            // 修改：高度改為 500 (原本 250)
+            webView.heightAnchor.constraint(equalToConstant: 500),
+            webView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -40)
         ])
     }
     
@@ -143,37 +150,76 @@ class DetailViewController: UIViewController {
         titleLabel.text = item.title
         
         let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy/MM/dd HH:mm"
+        formatter.locale = Locale.current // 確保星期顯示正確語言
+        // 修改：加入 (EEEE) 顯示星期
+        formatter.dateFormat = "yyyy/MM/dd (EEEE) HH:mm"
+        
         if let date = item.timestamp {
             timeLabel.text = formatter.string(from: date)
         }
         
         priceLabel.text = "¥\(Int(item.price))"
-        memoLabel.text = item.memo ?? "No memo"
+        memoLabel.text = item.memo ?? ""
         
-        // 圖片
         if let data = item.photoData, let image = UIImage(data: data) {
             imageView.image = image
             imageView.isHidden = false
         } else {
             imageView.isHidden = true
-            // 若沒圖片，把 Title 往上推
-            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20).isActive = true
+            imageView.heightAnchor.constraint(equalToConstant: 0).isActive = true
         }
         
-        // Google Map Logic
         if let urlStr = item.locationURL, let url = URL(string: urlStr) {
-            if urlStr.lowercased().contains("google.com/maps") || urlStr.lowercased().contains("goo.gl") {
-                // 如果是 Google Map 連結，載入 WebView
+            if urlStr.lowercased().contains("google") || urlStr.lowercased().contains("goo.gl") || urlStr.lowercased().contains("maps") {
                 webView.isHidden = false
                 let request = URLRequest(url: url)
                 webView.load(request)
             } else {
-                // 如果是一般連結，隱藏地圖 (或者您可以選擇做一個按鈕開啟 Safari)
                 webView.isHidden = true
+                webView.heightAnchor.constraint(equalToConstant: 0).isActive = true
             }
         } else {
             webView.isHidden = true
+            webView.heightAnchor.constraint(equalToConstant: 0).isActive = true
         }
+    }
+}
+
+// 簡單的圖片預覽控制器 (保持不變)
+class ImagePreviewViewController: UIViewController {
+    private let imageView = UIImageView()
+    private let closeButton = UIButton(type: .close)
+    
+    init(image: UIImage) {
+        super.init(nibName: nil, bundle: nil)
+        imageView.image = image
+    }
+    
+    required init?(coder: NSCoder) { fatalError() }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .black
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+        closeButton.tintColor = .white
+        closeButton.addTarget(self, action: #selector(dismissSelf), for: .touchUpInside)
+        
+        view.addSubview(imageView)
+        view.addSubview(closeButton)
+        
+        NSLayoutConstraint.activate([
+            imageView.topAnchor.constraint(equalTo: view.topAnchor),
+            imageView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            imageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            imageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            closeButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            closeButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16)
+        ])
+    }
+    
+    @objc private func dismissSelf() {
+        dismiss(animated: true)
     }
 }

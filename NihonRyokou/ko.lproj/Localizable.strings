@@ -18,7 +18,6 @@
 "itinerary_tab" = "일정";
 "input_tab" = "추가";
 
-/* 刪除確認視窗 (新增部分) */
 "total" = "합계";
 "delete_confirm_title" = "삭제 확인";
 "delete_confirm_message" = "정말 이 항목을 삭제하시겠습니까?";
@@ -33,3 +32,6 @@
 "alert_url_invalid" = "URL은 https:// 또는 http:// 로 시작해야 합니다";
 "ok_action" = "확인";
 "date_placeholder" = "날짜";
+
+"memo_placeholder" = "메모 (선택)";
+"photo_button" = " 사진";

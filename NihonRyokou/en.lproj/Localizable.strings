@@ -31,3 +31,6 @@
 "alert_url_invalid" = "URL must start with https:// or http://";
 "ok_action" = "OK";
 "date_placeholder" = "Date";
+
+"memo_placeholder" = "Memo (Optional)";
+"photo_button" = " Photo";

@@ -90,7 +90,8 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate {
         let btn = UIButton(type: .system)
         var config = UIButton.Configuration.gray()
         config.image = UIImage(systemName: "camera.fill")
-        config.title = " Photo"
+        // 修改：使用多語言
+        config.title = "photo_button".localized
         config.baseForegroundColor = Theme.textDark
         config.background.backgroundColor = UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1.0)
         config.cornerStyle = .medium
@@ -148,7 +149,7 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate {
     
     private lazy var titleField = createCuteTextField(placeholder: "title_placeholder_default".localized, iconName: "pencil")
     private lazy var locationField = createCuteTextField(placeholder: "location_placeholder".localized, iconName: "mappin.and.ellipse")
-    private lazy var memoField = createCuteTextField(placeholder: "Memo", iconName: "note.text")
+    private lazy var memoField = createCuteTextField(placeholder: "memo_placeholder".localized, iconName: "note.text")
     private lazy var priceField = createCuteTextField(placeholder: "price_placeholder".localized, keyboardType: .numberPad, iconName: "yensign.circle")
     private lazy var urlField = createCuteTextField(placeholder: "url_placeholder".localized, iconName: "link")
     

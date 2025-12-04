@@ -33,3 +33,6 @@
 "alert_url_invalid" = "URLは https:// または http:// で始まる必要があります";
 "ok_action" = "OK";
 "date_placeholder" = "日付";
+
+"memo_placeholder" = "メモ（任意）";
+"photo_button" = " 写真";

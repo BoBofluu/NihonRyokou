@@ -33,3 +33,6 @@
 "alert_url_invalid" = "連結必須以 https:// 或 http:// 開頭";
 "ok_action" = "確定";
 "date_placeholder" = "日期";
+
+"memo_placeholder" = "備註（選填）";
+"photo_button" = " 照片";
