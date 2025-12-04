@@ -4,11 +4,11 @@ class InputViewController: UIViewController {
     
     var onSave: (() -> Void)?
     
-    // 主容器：加大陰影與圓角
+    // 主容器：卡片式背景
     private let containerView: UIView = {
         let view = UIView()
         view.backgroundColor = .white
-        view.layer.cornerRadius = 24 // 更圓
+        view.layer.cornerRadius = 24
         view.layer.shadowColor = Theme.accentColor.cgColor
         view.layer.shadowOpacity = 0.15
         view.layer.shadowOffset = CGSize(width: 0, height: 8)
@@ -29,48 +29,74 @@ class InputViewController: UIViewController {
         return sc
     }()
     
-    // 日期選擇器容器 (為了美化背景)
-    private let dateContainer: UIView = {
+    // MARK: - Date Picker 區域 (修改重點)
+    
+    // 1. 建立一個灰色圓角容器 (Wrapper)，讓日期選擇器看起來像一個欄位
+    private let dateInputWrapper: UIView = {
         let view = UIView()
-        view.backgroundColor = Theme.primaryColor // 淡色背景
+        view.backgroundColor = UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1.0) // 淺灰背景
         view.layer.cornerRadius = 12
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
+    // 2. 左側的日曆 Icon
+    private let dateIconView: UIImageView = {
+        let iv = UIImageView(image: UIImage(systemName: "calendar"))
+        iv.tintColor = Theme.textLight
+        iv.contentMode = .scaleAspectFit
+        iv.translatesAutoresizingMaskIntoConstraints = false
+        return iv
+    }()
+    
+    // 3. 原生 DatePicker (.compact 風格 = 彈跳視窗)
     private let datePicker: UIDatePicker = {
         let dp = UIDatePicker()
         dp.datePickerMode = .dateAndTime
-        dp.preferredDatePickerStyle = .compact
+        dp.preferredDatePickerStyle = .compact // 保持您喜歡的彈跳視窗
         dp.tintColor = Theme.accentColor
+        dp.locale = Locale.current
         dp.translatesAutoresizingMaskIntoConstraints = false
+        // 讓內容靠左，貼近我們的 Icon
+        dp.contentHorizontalAlignment = .leading
         return dp
     }()
     
-    // 輔助函式：建立可愛風格的輸入框
-    private func createCuteTextField(placeholder: String, keyboardType: UIKeyboardType = .default) -> UITextField {
+    // MARK: - 其他輸入欄位
+    
+    private func createCuteTextField(placeholder: String, keyboardType: UIKeyboardType = .default, iconName: String? = nil) -> UITextField {
         let tf = UITextField()
         tf.placeholder = placeholder
-        tf.borderStyle = .none // 移除預設邊框，自己畫
-        tf.backgroundColor = UIColor(white: 0.96, alpha: 1.0) // 淺灰背景
-        tf.layer.cornerRadius = 12 // 圓角
+        tf.font = Theme.font(size: 16, weight: .medium)
+        tf.textColor = Theme.textDark
+        tf.borderStyle = .none
+        tf.backgroundColor = UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1.0)
+        tf.layer.cornerRadius = 12
         tf.keyboardType = keyboardType
         tf.autocapitalizationType = .none
         
-        // 增加左側內距
-        let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: tf.frame.height))
-        tf.leftView = paddingView
+        let leftPaddingView = UIView(frame: CGRect(x: 0, y: 0, width: 44, height: 50))
+        if let iconName = iconName {
+            let iconImageView = UIImageView(image: UIImage(systemName: iconName))
+            iconImageView.tintColor = Theme.textLight
+            iconImageView.contentMode = .scaleAspectFit
+            iconImageView.frame = CGRect(x: 12, y: 15, width: 20, height: 20)
+            leftPaddingView.addSubview(iconImageView)
+        } else {
+            leftPaddingView.frame = CGRect(x: 0, y: 0, width: 16, height: 50)
+        }
+        
+        tf.leftView = leftPaddingView
         tf.leftViewMode = .always
         
         tf.translatesAutoresizingMaskIntoConstraints = false
         return tf
     }
     
-    // 使用 lazy var 搭配輔助函式建立欄位
-    private lazy var titleField = createCuteTextField(placeholder: "Title")
-    private lazy var locationField = createCuteTextField(placeholder: "Location")
-    private lazy var priceField = createCuteTextField(placeholder: "Price", keyboardType: .numberPad) // 限制數字輸入
-    private lazy var urlField = createCuteTextField(placeholder: "URL")
+    private lazy var titleField = createCuteTextField(placeholder: "Title", iconName: "pencil")
+    private lazy var locationField = createCuteTextField(placeholder: "Location", iconName: "mappin.and.ellipse")
+    private lazy var priceField = createCuteTextField(placeholder: "Price", keyboardType: .numberPad, iconName: "yensign.circle")
+    private lazy var urlField = createCuteTextField(placeholder: "URL", iconName: "link")
     
     private let saveButton: UIButton = {
         let btn = UIButton(type: .system)
@@ -78,7 +104,7 @@ class InputViewController: UIViewController {
         btn.backgroundColor = Theme.accentColor
         btn.setTitleColor(.white, for: .normal)
         btn.titleLabel?.font = Theme.font(size: 18, weight: .bold)
-        btn.layer.cornerRadius = 28 // 變成膠囊形狀
+        btn.layer.cornerRadius = 28
         btn.layer.shadowColor = Theme.accentColor.cgColor
         btn.layer.shadowOpacity = 0.4
         btn.layer.shadowOffset = CGSize(width: 0, height: 4)
@@ -94,15 +120,26 @@ class InputViewController: UIViewController {
         
         setupUI()
         setupActions()
-        segmentChanged() // 初始化文字
+        setupKeyboardToolbar()
+        segmentChanged()
         
-        // 點擊背景收起鍵盤
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         view.addGestureRecognizer(tap)
     }
     
     @objc private func dismissKeyboard() {
         view.endEditing(true)
+    }
+    
+    // 價格鍵盤加上 Done 按鈕
+    private func setupKeyboardToolbar() {
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        let doneBtn = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(dismissKeyboard))
+        let flexSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        toolbar.setItems([flexSpace, doneBtn], animated: true)
+        
+        priceField.inputAccessoryView = toolbar
     }
     
     private func setupActions() {
@@ -114,43 +151,50 @@ class InputViewController: UIViewController {
         view.addSubview(containerView)
         containerView.addSubview(segmentedControl)
         
-        containerView.addSubview(dateContainer)
-        dateContainer.addSubview(datePicker)
+        // 將 DatePicker 放入 Wrapper 中
+        containerView.addSubview(dateInputWrapper)
+        dateInputWrapper.addSubview(dateIconView)
+        dateInputWrapper.addSubview(datePicker)
         
         containerView.addSubview(titleField)
         containerView.addSubview(locationField)
         containerView.addSubview(priceField)
         containerView.addSubview(urlField)
-        
         view.addSubview(saveButton)
         
-        let fieldHeight: CGFloat = 50 // 加高輸入框
-        let spacing: CGFloat = 24 // 加大間距
+        let fieldHeight: CGFloat = 50
+        let spacing: CGFloat = 20
         
         NSLayoutConstraint.activate([
-            // 容器
             containerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
             containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
             containerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
             
-            // 分頁控制
             segmentedControl.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 24),
             segmentedControl.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
             segmentedControl.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
             segmentedControl.heightAnchor.constraint(equalToConstant: 40),
             
-            // 日期區塊
-            dateContainer.topAnchor.constraint(equalTo: segmentedControl.bottomAnchor, constant: spacing),
-            dateContainer.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
-            dateContainer.trailingAnchor.constraint(lessThanOrEqualTo: containerView.trailingAnchor, constant: -20),
-            dateContainer.heightAnchor.constraint(equalToConstant: 40),
+            // --- Date Wrapper 佈局 ---
+            // 讓它長得跟下面的 TextField 一樣高、一樣寬
+            dateInputWrapper.topAnchor.constraint(equalTo: segmentedControl.bottomAnchor, constant: spacing),
+            dateInputWrapper.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
+            dateInputWrapper.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
+            dateInputWrapper.heightAnchor.constraint(equalToConstant: fieldHeight),
             
-            datePicker.centerYAnchor.constraint(equalTo: dateContainer.centerYAnchor),
-            datePicker.leadingAnchor.constraint(equalTo: dateContainer.leadingAnchor, constant: 8),
-            datePicker.trailingAnchor.constraint(equalTo: dateContainer.trailingAnchor, constant: -8),
+            // Icon 位置
+            dateIconView.leadingAnchor.constraint(equalTo: dateInputWrapper.leadingAnchor, constant: 12),
+            dateIconView.centerYAnchor.constraint(equalTo: dateInputWrapper.centerYAnchor),
+            dateIconView.widthAnchor.constraint(equalToConstant: 20),
+            dateIconView.heightAnchor.constraint(equalToConstant: 20),
             
-            // 輸入欄位 (加大間距)
-            titleField.topAnchor.constraint(equalTo: dateContainer.bottomAnchor, constant: spacing),
+            // DatePicker 位置：靠左對齊 Icon，垂直置中
+            datePicker.leadingAnchor.constraint(equalTo: dateIconView.trailingAnchor, constant: 12),
+            datePicker.centerYAnchor.constraint(equalTo: dateInputWrapper.centerYAnchor),
+            // 不設 trailing，讓它自然延伸，避免被拉伸
+            // -----------------------
+            
+            titleField.topAnchor.constraint(equalTo: dateInputWrapper.bottomAnchor, constant: spacing),
             titleField.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
             titleField.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
             titleField.heightAnchor.constraint(equalToConstant: fieldHeight),
@@ -170,9 +214,8 @@ class InputViewController: UIViewController {
             urlField.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
             urlField.heightAnchor.constraint(equalToConstant: fieldHeight),
             
-            urlField.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -30), // 底部留白
+            urlField.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -30),
             
-            // 儲存按鈕 (懸浮在容器下方)
             saveButton.topAnchor.constraint(equalTo: containerView.bottomAnchor, constant: 30),
             saveButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             saveButton.widthAnchor.constraint(equalToConstant: 220),
@@ -210,7 +253,7 @@ class InputViewController: UIViewController {
         
         _ = CoreDataManager.shared.createItem(
             type: type,
-            timestamp: datePicker.date,
+            timestamp: datePicker.date, // 直接取用 DatePicker 的值
             title: title,
             locationName: locationField.text ?? "",
             price: price,
@@ -219,11 +262,11 @@ class InputViewController: UIViewController {
         
         onSave?()
         
-        // 清空欄位
         titleField.text = ""
         locationField.text = ""
         priceField.text = ""
         urlField.text = ""
+        datePicker.date = Date() // 重置時間
         
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
