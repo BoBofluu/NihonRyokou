@@ -229,17 +229,18 @@ class InputViewController: UIViewController {
     
     // MARK: - Validation & Save Logic
     @objc private func handleSave() {
-        // 1. 標題檢查
+        // 1. 標題檢查 (必填)
         guard let title = titleField.text, !title.isEmpty else {
             showAlert(message: "alert_title_empty".localized)
             return
         }
         
-        // 2. 價格檢查：確認是有效數字
+        // 2. 價格檢查 (必須是數字)
         let priceText = priceField.text ?? ""
         var price: Double = 0.0
         
         if !priceText.isEmpty {
+            // 嘗試轉型為 Double，失敗代表包含非數字字元
             guard let validPrice = Double(priceText) else {
                 showAlert(message: "alert_price_invalid".localized)
                 return
@@ -247,10 +248,11 @@ class InputViewController: UIViewController {
             price = validPrice
         }
         
-        // 3. URL 檢查：必須以 http 開頭
+        // 3. URL 檢查 (必須以 http 開頭)
         var urlString: String? = nil
         if let text = urlField.text, !text.isEmpty {
             let lowerText = text.lowercased()
+            // 檢查前綴
             if !lowerText.hasPrefix("https://") && !lowerText.hasPrefix("http://") {
                 showAlert(message: "alert_url_invalid".localized)
                 return
@@ -258,7 +260,7 @@ class InputViewController: UIViewController {
             urlString = text
         }
         
-        // 4. 儲存
+        // 4. 通過所有檢查，執行儲存
         let type: String
         switch segmentedControl.selectedSegmentIndex {
         case 0: type = "transport"
@@ -285,10 +287,10 @@ class InputViewController: UIViewController {
         urlField.text = ""
         datePicker.date = Date()
         
+        // 成功震動與提示
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
         
-        // 使用多語言 Key：alert_added_message
         let alert = UIAlertController(title: nil, message: "alert_added_message".localized, preferredStyle: .alert)
         present(alert, animated: true)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
@@ -296,6 +298,7 @@ class InputViewController: UIViewController {
         }
     }
     
+    // 顯示錯誤訊息的輔助方法
     private func showAlert(message: String) {
         let alert = UIAlertController(title: "alert_error_title".localized, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "ok_action".localized, style: .default))

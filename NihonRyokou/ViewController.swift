@@ -119,13 +119,20 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         guard let cell = tableView.dequeueReusableCell(withIdentifier: ItineraryCell.identifier, for: indexPath) as? ItineraryCell else {
             return UITableViewCell()
         }
-        let item = sections[indexPath.section].items[indexPath.row]
-        cell.configure(with: item)
         
-        // 處理刪除按鈕點擊事件
-        cell.onDelete = { [weak self] in
-            guard let self = self else { return }
-            self.showDeleteConfirmation(at: indexPath)
+        // 這裡要先檢查索引是否安全，防止極端情況下的崩潰
+        if indexPath.section < sections.count && indexPath.row < sections[indexPath.section].items.count {
+            let item = sections[indexPath.section].items[indexPath.row]
+            cell.configure(with: item)
+        }
+        
+        // 【關鍵修正】
+        // 不要直接傳入 indexPath，而是要在點擊當下獲取 Cell 最新的位置
+        cell.onDelete = { [weak self, weak cell] in
+            guard let self = self, let cell = cell,
+                  let currentIndexPath = self.tableView.indexPath(for: cell) else { return }
+            
+            self.showDeleteConfirmation(at: currentIndexPath)
         }
         
         return cell
@@ -169,8 +176,17 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         return UISwipeActionsConfiguration(actions: [deleteAction])
     }
     
+    
     private func performDelete(at indexPath: IndexPath) {
-        let item = sections[indexPath.section].items[indexPath.row]
+        // 雙重保險：檢查索引是否有效
+        guard indexPath.section < sections.count,
+              indexPath.row < sections[indexPath.section].items.count else {
+            print("Error: Invalid index path for deletion: \(indexPath)")
+            return
+        }
+        
+        let item = sections[indexPath.section].items[indexPath.row] // 這裡現在安全了
+        
         CoreDataManager.shared.deleteItem(item)
         sections[indexPath.section].items.remove(at: indexPath.row)
         
@@ -186,10 +202,12 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             let oldDate = sections[indexPath.section].date
             sections[indexPath.section] = ItinerarySection(date: oldDate, totalAmount: newTotal, items: newItems)
             
-            // 延遲刷新 Header
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                UIView.performWithoutAnimation {
-                    self.tableView.reloadSections(IndexSet(integer: indexPath.section), with: .none)
+                // 加一個額外檢查，避免 Section 已經不見了還去刷新
+                if indexPath.section < self.sections.count {
+                    UIView.performWithoutAnimation {
+                        self.tableView.reloadSections(IndexSet(integer: indexPath.section), with: .none)
+                    }
                 }
             }
         }
