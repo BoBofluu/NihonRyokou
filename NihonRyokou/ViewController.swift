@@ -218,7 +218,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         let item = sections[indexPath.section].items[indexPath.row]
         
         if item.type == "transport" {
-            return 55
+            return 70
         } else {
             return 110
         }

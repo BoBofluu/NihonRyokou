@@ -16,7 +16,6 @@ class ItineraryCell: UITableViewCell {
         return view
     }()
     
-    // 主 Stack：[Icon, TitleStack, Spacer, AccessoryStack]
     private let mainStack: UIStackView = {
         let stack = UIStackView()
         stack.axis = .horizontal
@@ -44,7 +43,6 @@ class ItineraryCell: UITableViewCell {
         return iv
     }()
     
-    // 中間：標題 + 地點
     private let titleStack: UIStackView = {
         let stack = UIStackView()
         stack.axis = .vertical
@@ -61,7 +59,6 @@ class ItineraryCell: UITableViewCell {
         return label
     }()
     
-    // 地點 (原本是備註)
     private let locationLabel: UILabel = {
         let label = UILabel()
         label.font = Theme.font(size: 12, weight: .regular)
@@ -70,7 +67,6 @@ class ItineraryCell: UITableViewCell {
         return label
     }()
     
-    // 右側區域：[價格Stack, 照片]
     private let accessoryStack: UIStackView = {
         let stack = UIStackView()
         stack.axis = .horizontal
@@ -79,11 +75,10 @@ class ItineraryCell: UITableViewCell {
         return stack
     }()
     
-    // 價格 + 移動時間 (垂直排列)
     private let priceInfoStack: UIStackView = {
         let stack = UIStackView()
         stack.axis = .vertical
-        stack.alignment = .trailing // 靠右對齊
+        stack.alignment = .trailing
         stack.spacing = 2
         return stack
     }()
@@ -92,7 +87,6 @@ class ItineraryCell: UITableViewCell {
         let label = UILabel()
         label.font = Theme.font(size: 14, weight: .bold)
         label.textColor = Theme.secondaryAccent
-        label.textAlignment = .right
         return label
     }()
     
@@ -100,7 +94,6 @@ class ItineraryCell: UITableViewCell {
         let label = UILabel()
         label.font = Theme.font(size: 12, weight: .medium)
         label.textColor = .systemGray
-        label.textAlignment = .right
         return label
     }()
     
@@ -146,21 +139,18 @@ class ItineraryCell: UITableViewCell {
         mainStack.addArrangedSubview(spacer)
         mainStack.addArrangedSubview(accessoryStack)
         
-        // 設定 spacer 盡量撐開，把右邊資訊推到底
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         
-        // 【關鍵修改 1】設定優先級：標題 > 金額
-        // 標題不能被壓縮 (High)
         titleLabel.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         locationLabel.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         
-        // 金額可以被壓縮 (Low)，空間不夠時顯示 ...
         priceLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         durationLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         
-        // 【關鍵修改 2】設定金額最小寬度
-        // 確保金額至少有顯示 "1,000" 的空間 (約 50pt)
         priceLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 50).isActive = true
+        priceInfoStack.setContentCompressionResistancePriority(.required, for: .horizontal)
+        photoImageView.setContentCompressionResistancePriority(.required, for: .horizontal)
+        accessoryStack.setContentCompressionResistancePriority(.required, for: .horizontal)
         
         containerView.addSubview(mainStack)
         
@@ -170,8 +160,8 @@ class ItineraryCell: UITableViewCell {
             containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             
-            mainStack.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 8),
-            mainStack.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -8),
+            mainStack.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 12),
+            mainStack.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -12),
             mainStack.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
             mainStack.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
             
@@ -191,7 +181,6 @@ class ItineraryCell: UITableViewCell {
         timeLabel.text = item.timestamp.map { formatter.string(from: $0) } ?? "--:--"
         titleLabel.text = item.title
         
-        // 顯示地點
         if let loc = item.locationName, !loc.isEmpty {
             locationLabel.text = loc
             locationLabel.isHidden = false
@@ -199,14 +188,11 @@ class ItineraryCell: UITableViewCell {
             locationLabel.isHidden = true
         }
         
-        // 價格顯示 (含千分位 + 防呆)
         if item.price > 0 {
             let numberFormatter = NumberFormatter()
             numberFormatter.numberStyle = .decimal
             numberFormatter.maximumFractionDigits = 0
             
-            // 這裡如果數字超大，會自動變成 "10,000,000..."
-            // 配合上面的 AutoLayout 設定，如果寬度不夠，就會自動截斷尾部
             if let priceString = numberFormatter.string(from: NSNumber(value: item.price)) {
                 priceLabel.text = "¥\(priceString)"
             } else {
@@ -217,7 +203,6 @@ class ItineraryCell: UITableViewCell {
             priceLabel.isHidden = true
         }
         
-        // Icon & Duration
         let imageName: String
         switch item.type {
         case "transport":
@@ -253,9 +238,6 @@ class ItineraryCell: UITableViewCell {
         }
         iconView.image = UIImage(systemName: imageName)
         
-        // Photo Logic
-        // 當沒有照片時，isHidden = true，UIStackView 會自動把前面的價格資訊往右推到底
-        // 當有照片時，isHidden = false，價格資訊就會在照片左邊
         if let data = item.photoData, let image = UIImage(data: data) {
             photoImageView.image = image
             photoImageView.isHidden = false
