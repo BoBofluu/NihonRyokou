@@ -44,3 +44,4 @@
 "minute" = "分";
 "alert_price_too_high" = "金額過大 (上限 9,999,999,999)";
 "detail_title" = "詳細資訊";
+"delete_photo" = "刪除照片";

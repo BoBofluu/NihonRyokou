@@ -44,3 +44,4 @@
 "minute" = "分";
 "alert_price_too_high" = "金額が大きすぎます (最大 9,999,999,999)";
 "detail_title" = "詳細";
+"delete_photo" = "写真を削除";

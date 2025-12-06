@@ -1,7 +1,7 @@
 import UIKit
 import PhotosUI
 
-class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIPickerViewDelegate, UIPickerViewDataSource {
+class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIPickerViewDelegate, UIPickerViewDataSource, UITextFieldDelegate {
     
     var onSave: (() -> Void)?
     private var selectedImageData: Data?
@@ -132,11 +132,10 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
     
     private lazy var photoDeleteButton: UIButton = {
         let btn = UIButton(type: .system)
-        let config = UIImage.SymbolConfiguration(pointSize: 10, weight: .bold)
-        btn.setImage(UIImage(systemName: "xmark", withConfiguration: config), for: .normal)
-        btn.tintColor = .white
-        btn.backgroundColor = .systemRed
-        btn.layer.cornerRadius = 10
+        btn.setTitle("delete_photo".localized, for: .normal)
+        btn.setTitleColor(.systemRed, for: .normal)
+        btn.titleLabel?.font = Theme.font(size: 14, weight: .medium)
+        btn.backgroundColor = .clear
         btn.translatesAutoresizingMaskIntoConstraints = false
         btn.isHidden = true
         btn.addTarget(self, action: #selector(didTapDeletePhoto), for: .touchUpInside)
@@ -210,6 +209,9 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         setupUI()
         setupActions()
         setupKeyboardToolbar()
+        durationField.inputView = durationPicker
+        durationField.delegate = self
+        durationField.tintColor = .clear
         segmentChanged()
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
@@ -269,10 +271,9 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
             photoPreview.widthAnchor.constraint(equalToConstant: 50),
             photoPreview.heightAnchor.constraint(equalToConstant: 50),
             
-            photoDeleteButton.topAnchor.constraint(equalTo: photoPreview.topAnchor, constant: -6),
-            photoDeleteButton.trailingAnchor.constraint(equalTo: photoPreview.trailingAnchor, constant: 6),
-            photoDeleteButton.widthAnchor.constraint(equalToConstant: 20),
-            photoDeleteButton.heightAnchor.constraint(equalToConstant: 20)
+            photoDeleteButton.leadingAnchor.constraint(equalTo: photoPreview.trailingAnchor, constant: 12),
+            photoDeleteButton.centerYAnchor.constraint(equalTo: photoContainer.centerYAnchor),
+            photoDeleteButton.heightAnchor.constraint(equalToConstant: 40)
         ])
         
         // 3. Add to StackView
@@ -383,7 +384,6 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
                     self.photoPreview.image = resizedImage
                     self.photoPreview.isHidden = false
                     self.photoDeleteButton.isHidden = false
-                    self.photoButton.isHidden = true
                     self.selectedImageData = resizedImage.jpegData(compressionQuality: 0.7)
                 }
             }
@@ -505,5 +505,13 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         let alert = UIAlertController(title: "alert_error_title".localized, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "ok_action".localized, style: .default))
         present(alert, animated: true)
+    }
+    
+    // MARK: - UITextFieldDelegate
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        if textField == durationField {
+            return false
+        }
+        return true
     }
 }

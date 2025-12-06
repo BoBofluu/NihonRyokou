@@ -44,3 +44,4 @@
 "minute" = "min";
 "alert_price_too_high" = "Price is too high (Max 9,999,999,999)";
 "detail_title" = "Details";
+"delete_photo" = "Delete Photo";
