@@ -6,13 +6,14 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
     var onSave: (() -> Void)?
     private var selectedImageData: Data?
     
-    private var photoContainerHeightConstraint: NSLayoutConstraint?
-    private var durationFieldHeightConstraint: NSLayoutConstraint?
+    
     
     private let hours = Array(0...24)
     private let minutes = Array(0...59)
     private var selectedHour = 0
     private var selectedMinute = 0
+    
+    // MARK: - UI Components
     
     private let containerView: UIView = {
         let view = UIView()
@@ -33,10 +34,14 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         return sv
     }()
     
-    private let scrollContentView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
+    private let formStackView: UIStackView = {
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.spacing = 20
+        stack.alignment = .fill
+        stack.distribution = .fill
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        return stack
     }()
     
     private let segmentedControl: UISegmentedControl = {
@@ -48,7 +53,7 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         ]
         let sc = UISegmentedControl(items: items)
         sc.selectedSegmentIndex = 0
-        sc.translatesAutoresizingMaskIntoConstraints = false
+        sc.heightAnchor.constraint(equalToConstant: 40).isActive = true
         return sc
     }()
     
@@ -57,7 +62,7 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         let view = UIView()
         view.backgroundColor = UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1.0)
         view.layer.cornerRadius = 12
-        view.translatesAutoresizingMaskIntoConstraints = false
+        view.heightAnchor.constraint(equalToConstant: 50).isActive = true
         return view
     }()
     
@@ -93,6 +98,7 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         let view = UIView()
         view.backgroundColor = .clear
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.clipsToBounds = true
         return view
     }()
     
@@ -124,8 +130,21 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         return iv
     }()
     
-    // MARK: - Input Fields
-    private func createCuteTextField(placeholder: String, keyboardType: UIKeyboardType = .default, iconName: String? = nil) -> UITextField {
+    private lazy var photoDeleteButton: UIButton = {
+        let btn = UIButton(type: .system)
+        let config = UIImage.SymbolConfiguration(pointSize: 10, weight: .bold)
+        btn.setImage(UIImage(systemName: "xmark", withConfiguration: config), for: .normal)
+        btn.tintColor = .white
+        btn.backgroundColor = .systemRed
+        btn.layer.cornerRadius = 10
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        btn.isHidden = true
+        btn.addTarget(self, action: #selector(didTapDeletePhoto), for: .touchUpInside)
+        return btn
+    }()
+    
+    // MARK: - Input Fields Helper
+    private func createCuteTextField(placeholder: String, keyboardType: UIKeyboardType = .default, iconName: String? = nil, hasHeightConstraint: Bool = true) -> UITextField {
         let tf = UITextField()
         tf.placeholder = placeholder
         tf.font = Theme.font(size: 16, weight: .medium)
@@ -135,6 +154,12 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         tf.layer.cornerRadius = 12
         tf.keyboardType = keyboardType
         tf.autocapitalizationType = .none
+        tf.translatesAutoresizingMaskIntoConstraints = false
+        
+        if hasHeightConstraint {
+            // 一般欄位固定 50 高
+            tf.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        }
         
         let leftPaddingView = UIView(frame: CGRect(x: 0, y: 0, width: 44, height: 50))
         if let iconName = iconName {
@@ -149,18 +174,12 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         
         tf.leftView = leftPaddingView
         tf.leftViewMode = .always
-        tf.translatesAutoresizingMaskIntoConstraints = false
         return tf
     }
     
+    // MARK: - Fields Definition
     private lazy var titleField = createCuteTextField(placeholder: "title_placeholder_default".localized, iconName: "pencil")
-    
-    private lazy var durationField: UITextField = {
-        let tf = createCuteTextField(placeholder: "travel_time_placeholder".localized, iconName: "clock")
-        tf.inputView = durationPicker
-        return tf
-    }()
-    
+    private lazy var durationField = createCuteTextField(placeholder: "travel_time_placeholder".localized, iconName: "clock")
     private lazy var locationField = createCuteTextField(placeholder: "location_placeholder".localized, iconName: "mappin.and.ellipse")
     private lazy var memoField = createCuteTextField(placeholder: "memo_placeholder".localized, iconName: "note.text")
     private lazy var priceField = createCuteTextField(placeholder: "price_placeholder".localized, keyboardType: .numberPad, iconName: "yensign.circle")
@@ -178,9 +197,11 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         btn.layer.shadowOffset = CGSize(width: 0, height: 4)
         btn.layer.shadowRadius = 8
         btn.translatesAutoresizingMaskIntoConstraints = false
+        btn.heightAnchor.constraint(equalToConstant: 56).isActive = true
         return btn
     }()
     
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = Theme.primaryColor
@@ -215,24 +236,65 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         segmentedControl.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
     }
     
+    // MARK: - Layout
     private func setupUI() {
         view.addSubview(containerView)
         containerView.addSubview(scrollView)
-        scrollView.addSubview(scrollContentView)
+        scrollView.addSubview(formStackView)
         
-        [segmentedControl, dateInputWrapper, titleField, durationField, locationField, memoField, priceField, urlField, photoContainer, saveButton].forEach {
-            scrollContentView.addSubview($0)
-        }
-        
+        // 1. Date Picker
         dateInputWrapper.addSubview(dateIconView)
         dateInputWrapper.addSubview(datePicker)
+        NSLayoutConstraint.activate([
+            dateIconView.leadingAnchor.constraint(equalTo: dateInputWrapper.leadingAnchor, constant: 12),
+            dateIconView.centerYAnchor.constraint(equalTo: dateInputWrapper.centerYAnchor),
+            dateIconView.widthAnchor.constraint(equalToConstant: 20),
+            dateIconView.heightAnchor.constraint(equalToConstant: 20),
+            datePicker.leadingAnchor.constraint(equalTo: dateIconView.trailingAnchor, constant: 12),
+            datePicker.centerYAnchor.constraint(equalTo: dateInputWrapper.centerYAnchor)
+        ])
         
+        // 2. Photo Container
         photoContainer.addSubview(photoButton)
         photoContainer.addSubview(photoPreview)
+        photoContainer.addSubview(photoDeleteButton)
+        NSLayoutConstraint.activate([
+            photoButton.leadingAnchor.constraint(equalTo: photoContainer.leadingAnchor),
+            photoButton.centerYAnchor.constraint(equalTo: photoContainer.centerYAnchor),
+            photoButton.widthAnchor.constraint(equalToConstant: 120),
+            photoButton.heightAnchor.constraint(equalToConstant: 50),
+            
+            photoPreview.leadingAnchor.constraint(equalTo: photoButton.trailingAnchor, constant: 16),
+            photoPreview.centerYAnchor.constraint(equalTo: photoContainer.centerYAnchor),
+            photoPreview.widthAnchor.constraint(equalToConstant: 50),
+            photoPreview.heightAnchor.constraint(equalToConstant: 50),
+            
+            photoDeleteButton.topAnchor.constraint(equalTo: photoPreview.topAnchor, constant: -6),
+            photoDeleteButton.trailingAnchor.constraint(equalTo: photoPreview.trailingAnchor, constant: 6),
+            photoDeleteButton.widthAnchor.constraint(equalToConstant: 20),
+            photoDeleteButton.heightAnchor.constraint(equalToConstant: 20)
+        ])
         
-        let fieldHeight: CGFloat = 50
-        let spacing: CGFloat = 20
+        // 3. Add to StackView
+        let items = [
+            segmentedControl,
+            dateInputWrapper,
+            titleField,
+            durationField,
+            locationField,
+            memoField,
+            priceField,
+            urlField,
+            photoContainer,
+            saveButton
+        ]
+        items.forEach { formStackView.addArrangedSubview($0) }
         
+        formStackView.setCustomSpacing(30, after: photoContainer)
+        
+        photoContainer.heightAnchor.constraint(equalToConstant: 60).isActive = true
+        
+        // 6. Main Constraints
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
             containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
@@ -244,88 +306,37 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
             scrollView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -20),
             
-            scrollContentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
-            scrollContentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
-            scrollContentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-            scrollContentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
-            scrollContentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
-            
-            segmentedControl.topAnchor.constraint(equalTo: scrollContentView.topAnchor),
-            segmentedControl.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
-            segmentedControl.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
-            segmentedControl.heightAnchor.constraint(equalToConstant: 40),
-            
-            dateInputWrapper.topAnchor.constraint(equalTo: segmentedControl.bottomAnchor, constant: 20),
-            dateInputWrapper.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
-            dateInputWrapper.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
-            dateInputWrapper.heightAnchor.constraint(equalToConstant: fieldHeight),
-            
-            dateIconView.leadingAnchor.constraint(equalTo: dateInputWrapper.leadingAnchor, constant: 12),
-            dateIconView.centerYAnchor.constraint(equalTo: dateInputWrapper.centerYAnchor),
-            dateIconView.widthAnchor.constraint(equalToConstant: 20),
-            dateIconView.heightAnchor.constraint(equalToConstant: 20),
-            
-            datePicker.leadingAnchor.constraint(equalTo: dateIconView.trailingAnchor, constant: 12),
-            datePicker.centerYAnchor.constraint(equalTo: dateInputWrapper.centerYAnchor),
-            
-            titleField.topAnchor.constraint(equalTo: dateInputWrapper.bottomAnchor, constant: spacing),
-            titleField.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
-            titleField.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
-            titleField.heightAnchor.constraint(equalToConstant: fieldHeight),
-            
-            durationField.topAnchor.constraint(equalTo: titleField.bottomAnchor, constant: 16),
-            durationField.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
-            durationField.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
-            
-            locationField.topAnchor.constraint(equalTo: durationField.bottomAnchor, constant: 16),
-            locationField.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
-            locationField.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
-            locationField.heightAnchor.constraint(equalToConstant: fieldHeight),
-            
-            memoField.topAnchor.constraint(equalTo: locationField.bottomAnchor, constant: 16),
-            memoField.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
-            memoField.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
-            memoField.heightAnchor.constraint(equalToConstant: fieldHeight),
-            
-            priceField.topAnchor.constraint(equalTo: memoField.bottomAnchor, constant: 16),
-            priceField.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
-            priceField.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
-            priceField.heightAnchor.constraint(equalToConstant: fieldHeight),
-            
-            urlField.topAnchor.constraint(equalTo: priceField.bottomAnchor, constant: 16),
-            urlField.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
-            urlField.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
-            urlField.heightAnchor.constraint(equalToConstant: fieldHeight),
-            
-            photoContainer.topAnchor.constraint(equalTo: urlField.bottomAnchor, constant: 20),
-            photoContainer.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
-            photoContainer.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
-            
-            photoButton.leadingAnchor.constraint(equalTo: photoContainer.leadingAnchor),
-            photoButton.centerYAnchor.constraint(equalTo: photoContainer.centerYAnchor),
-            photoButton.widthAnchor.constraint(equalToConstant: 120),
-            photoButton.heightAnchor.constraint(equalToConstant: 50),
-            
-            photoPreview.leadingAnchor.constraint(equalTo: photoButton.trailingAnchor, constant: 16),
-            photoPreview.centerYAnchor.constraint(equalTo: photoContainer.centerYAnchor),
-            photoPreview.widthAnchor.constraint(equalToConstant: 50),
-            photoPreview.heightAnchor.constraint(equalToConstant: 50),
-            
-            saveButton.topAnchor.constraint(equalTo: photoContainer.bottomAnchor, constant: 30),
-            saveButton.centerXAnchor.constraint(equalTo: scrollContentView.centerXAnchor),
-            saveButton.widthAnchor.constraint(equalToConstant: 220),
-            saveButton.heightAnchor.constraint(equalToConstant: 56),
-            saveButton.bottomAnchor.constraint(equalTo: scrollContentView.bottomAnchor, constant: -20)
+            formStackView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            formStackView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 20),
+            formStackView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -20),
+            formStackView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            formStackView.widthAnchor.constraint(equalTo: scrollView.widthAnchor, constant: -40)
         ])
-        
-        durationFieldHeightConstraint = durationField.heightAnchor.constraint(equalToConstant: 50)
-        durationFieldHeightConstraint?.isActive = true
-        
-        photoContainerHeightConstraint = photoContainer.heightAnchor.constraint(equalToConstant: 60)
-        photoContainerHeightConstraint?.isActive = true
     }
     
-    // MARK: - PickerView Delegate & DataSource
+    // MARK: - Logic
+    @objc private func segmentChanged() {
+        let index = segmentedControl.selectedSegmentIndex
+        
+        switch index {
+        case 0: titleField.placeholder = "title_placeholder_transport".localized
+        case 1: titleField.placeholder = "title_placeholder_hotel".localized
+        case 2: titleField.placeholder = "title_placeholder_restaurant".localized
+        case 3: titleField.placeholder = "activity".localized
+        default: titleField.placeholder = "title_placeholder_default".localized
+        }
+        
+        if index == 0 {
+            durationField.isHidden = false
+            photoContainer.isHidden = true
+        } else {
+            durationField.isHidden = true
+            photoContainer.isHidden = false
+        }
+        
+        UIView.animate(withDuration: 0.3) { self.view.layoutIfNeeded() }
+    }
+    
     func numberOfComponents(in pickerView: UIPickerView) -> Int { return 2 }
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int { return component == 0 ? hours.count : minutes.count }
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
@@ -342,41 +353,6 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         else { durationField.text = "\(selectedHour)\("hour".localized) \(selectedMinute)\("minute".localized)" }
     }
     
-    // MARK: - Logic
-    @objc private func segmentChanged() {
-        let index = segmentedControl.selectedSegmentIndex
-        
-        if index == 0 {
-            photoContainer.isHidden = true
-            photoContainerHeightConstraint?.constant = 0
-            photoButton.alpha = 0
-        } else {
-            photoContainer.isHidden = false
-            photoContainerHeightConstraint?.constant = 60
-            photoButton.alpha = 1
-        }
-        
-        if index == 0 {
-            durationField.isHidden = false
-            durationFieldHeightConstraint?.constant = 50
-            durationField.alpha = 1
-        } else {
-            durationField.isHidden = true
-            durationFieldHeightConstraint?.constant = 0
-            durationField.alpha = 0
-        }
-        
-        UIView.animate(withDuration: 0.3) { self.view.layoutIfNeeded() }
-        
-        switch index {
-        case 0: titleField.placeholder = "title_placeholder_transport".localized
-        case 1: titleField.placeholder = "title_placeholder_hotel".localized
-        case 2: titleField.placeholder = "title_placeholder_restaurant".localized
-        case 3: titleField.placeholder = "activity".localized
-        default: titleField.placeholder = "title_placeholder_default".localized
-        }
-    }
-    
     @objc private func didTapPhotoButton() {
         var config = PHPickerConfiguration()
         config.selectionLimit = 1
@@ -386,29 +362,68 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         present(picker, animated: true)
     }
     
+    @objc private func didTapDeletePhoto() {
+        selectedImageData = nil
+        photoPreview.image = nil
+        photoPreview.isHidden = true
+        photoDeleteButton.isHidden = true
+        photoButton.isHidden = false
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
+    }
+    
     func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
         picker.dismiss(animated: true)
         guard let item = results.first else { return }
         if item.itemProvider.canLoadObject(ofClass: UIImage.self) {
             item.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] (image, error) in
-                guard let self = self, let image = image as? UIImage else { return }
+                guard let self = self, let originalImage = image as? UIImage else { return }
+                let resizedImage = self.resizeImage(image: originalImage, targetWidth: 800)
                 DispatchQueue.main.async {
-                    self.photoPreview.image = image
+                    self.photoPreview.image = resizedImage
                     self.photoPreview.isHidden = false
-                    self.selectedImageData = image.jpegData(compressionQuality: 0.7)
+                    self.photoDeleteButton.isHidden = false
+                    self.photoButton.isHidden = true
+                    self.selectedImageData = resizedImage.jpegData(compressionQuality: 0.7)
                 }
             }
         }
     }
     
-    // 【修改】直接使用 DetailViewController.swift 中定義好的 ImagePreviewViewController
+    private func resizeImage(image: UIImage, targetWidth: CGFloat) -> UIImage {
+        let size = image.size
+        let widthRatio  = targetWidth  / size.width
+        let newSize = CGSize(width: targetWidth, height: size.height * widthRatio)
+        let rect = CGRect(origin: .zero, size: newSize)
+        UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
+        image.draw(in: rect)
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return newImage ?? image
+    }
+    
     @objc private func didTapPreviewImage() {
         guard let image = photoPreview.image else { return }
-        
-        // 這裡重用專案中已有的 ImagePreviewViewController 類別
-        // 確保 DetailViewController.swift 檔案存在於專案中
-        let previewVC = ImagePreviewViewController(image: image)
+        let previewVC = UIViewController()
+        previewVC.view.backgroundColor = .black
         previewVC.modalPresentationStyle = .fullScreen
+        let imageView = UIImageView(image: image)
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        let closeBtn = UIButton(type: .close)
+        closeBtn.tintColor = .white
+        closeBtn.translatesAutoresizingMaskIntoConstraints = false
+        closeBtn.addAction(UIAction { _ in previewVC.dismiss(animated: true) }, for: .touchUpInside)
+        previewVC.view.addSubview(imageView)
+        previewVC.view.addSubview(closeBtn)
+        NSLayoutConstraint.activate([
+            imageView.topAnchor.constraint(equalTo: previewVC.view.safeAreaLayoutGuide.topAnchor),
+            imageView.bottomAnchor.constraint(equalTo: previewVC.view.bottomAnchor),
+            imageView.leadingAnchor.constraint(equalTo: previewVC.view.leadingAnchor),
+            imageView.trailingAnchor.constraint(equalTo: previewVC.view.trailingAnchor),
+            closeBtn.topAnchor.constraint(equalTo: previewVC.view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            closeBtn.trailingAnchor.constraint(equalTo: previewVC.view.trailingAnchor, constant: -16)
+        ])
         present(previewVC, animated: true)
     }
     
@@ -424,8 +439,7 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
                 showAlert(message: "alert_price_invalid".localized)
                 return
             }
-            let maxPrice: Double = 9_999_999_999
-            if validPrice > maxPrice {
+            if validPrice > 9_999_999_999 {
                 showAlert(message: "alert_price_too_high".localized)
                 return
             }
@@ -460,7 +474,17 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
             transportDuration: durationField.text
         )
         onSave?()
-        
+        resetFields()
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+        let alert = UIAlertController(title: nil, message: "alert_added_message".localized, preferredStyle: .alert)
+        present(alert, animated: true)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+            alert.dismiss(animated: true)
+        }
+    }
+    
+    private func resetFields() {
         titleField.text = ""
         locationField.text = ""
         priceField.text = ""
@@ -470,18 +494,11 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         selectedImageData = nil
         photoPreview.image = nil
         photoPreview.isHidden = true
+        photoDeleteButton.isHidden = true
+        photoButton.isHidden = false
         datePicker.date = Date()
         selectedHour = 0
         selectedMinute = 0
-        
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.success)
-        
-        let alert = UIAlertController(title: nil, message: "alert_added_message".localized, preferredStyle: .alert)
-        present(alert, animated: true)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-            alert.dismiss(animated: true)
-        }
     }
     
     private func showAlert(message: String) {
