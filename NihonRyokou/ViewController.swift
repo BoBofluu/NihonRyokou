@@ -204,13 +204,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             let oldDate = sections[indexPath.section].date
             sections[indexPath.section] = ItinerarySection(date: oldDate, totalAmount: newTotal, items: newItems)
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                if indexPath.section < self.sections.count {
-                    UIView.performWithoutAnimation {
-                        self.tableView.reloadSections(IndexSet(integer: indexPath.section), with: .none)
-                    }
-                }
-            }
+            tableView.reloadSections(IndexSet(integer: indexPath.section), with: .none)
         }
     }
     
