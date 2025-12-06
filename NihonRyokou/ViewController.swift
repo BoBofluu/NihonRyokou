@@ -15,6 +15,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         tv.backgroundColor = Theme.primaryColor
         tv.separatorStyle = .none
         tv.translatesAutoresizingMaskIntoConstraints = false
+        // 設定預估高度，優化效能
+        tv.sectionHeaderHeight = UITableView.automaticDimension
+        tv.estimatedSectionHeaderHeight = 40
         return tv
     }()
     
@@ -82,7 +85,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         return sections[section].items.count
     }
     
-    // Header 設定：修改日期格式以顯示星期
+    // Header 設定：修改為自動換行
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let headerView = UIView()
         
@@ -90,6 +93,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = Theme.font(size: 18, weight: .bold)
         label.textColor = Theme.textDark
+        label.numberOfLines = 0 // 關鍵：允許多行
         
         let sectionData = sections[section]
         let dateFormatter = DateFormatter()
@@ -98,9 +102,16 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         
         let dateStr = dateFormatter.string(from: sectionData.date)
         
-        // 修改：使用 String(format:) 避免 Int 溢位崩潰
-        // 原本: let priceStr = "¥\(Int(sectionData.totalAmount))" -> 會崩潰
-        let priceStr = String(format: "%.0f", sectionData.totalAmount)
+        let numberFormatter = NumberFormatter()
+        numberFormatter.numberStyle = .decimal
+        numberFormatter.maximumFractionDigits = 0
+        
+        let priceStr: String
+        if let formattedPrice = numberFormatter.string(from: NSNumber(value: sectionData.totalAmount)) {
+            priceStr = formattedPrice
+        } else {
+            priceStr = String(format: "%.0f", sectionData.totalAmount)
+        }
         
         let totalLabel = "total".localized
         
@@ -110,15 +121,18 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         
         NSLayoutConstraint.activate([
             label.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
+            label.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 8),
             label.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
-            label.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 8)
+            // 關鍵：加上右邊約束，文字才會知道何時換行
+            label.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16)
         ])
         
         return headerView
     }
     
+    // 修改：高度改為自動計算，以適應換行後的文字高度
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return 40
+        return UITableView.automaticDimension
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
