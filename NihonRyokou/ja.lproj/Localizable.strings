@@ -1,16 +1,21 @@
 "app_title" = "日本旅行計画";
 "add_item_title" = "項目を追加";
-"activity" = "予定";
 "transport" = "交通";
 "hotel" = "宿泊";
 "restaurant" = "食事";
+"activity" = "観光";
+
 "title_placeholder_default" = "タイトル（例：東京駅）";
 "title_placeholder_transport" = "駅名 / 路線名";
 "title_placeholder_hotel" = "ホテル名";
 "title_placeholder_restaurant" = "店名";
+
 "location_placeholder" = "場所";
 "price_placeholder" = "金額 (円)";
 "url_placeholder" = "URL (任意)";
+"memo_placeholder" = "メモ（任意）";
+"travel_time_placeholder" = "移動時間";
+
 "add_button_title" = "リストに追加";
 "delete_action" = "削除";
 "settings_title" = "設定";
@@ -18,7 +23,6 @@
 "itinerary_tab" = "旅程";
 "input_tab" = "追加";
 
-/* 新增 */
 "total" = "合計";
 "delete_confirm_title" = "確認";
 "delete_confirm_message" = "本当にこの項目を削除しますか？";
@@ -26,7 +30,7 @@
 "cancel" = "キャンセル";
 
 /* メッセージとエラー */
-"alert_added_message" = "追加しました！";
+"alert_added_message" = "追加しました！✨";
 "alert_error_title" = "入力エラー";
 "alert_title_empty" = "タイトルを入力してください";
 "alert_price_invalid" = "金額は数字で入力してください";
@@ -34,5 +38,7 @@
 "ok_action" = "OK";
 "date_placeholder" = "日付";
 
-"memo_placeholder" = "メモ（任意）";
+/* 新機能 */
 "photo_button" = " 写真";
+"hour" = "時間";
+"minute" = "分";

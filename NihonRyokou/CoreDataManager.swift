@@ -21,8 +21,7 @@ class CoreDataManager {
         }
     }
     
-    // 修改：新增 memo 與 photoData 參數
-    func createItem(type: String, timestamp: Date, title: String, locationName: String, price: Double, locationURL: String? = nil, memo: String? = nil, photoData: Data? = nil) -> ItineraryItem {
+    func createItem(type: String, timestamp: Date, title: String, locationName: String, price: Double, locationURL: String? = nil, memo: String? = nil, photoData: Data? = nil, transportDuration: String? = nil) -> ItineraryItem {
         let item = ItineraryItem(context: context)
         item.id = UUID()
         item.type = type
@@ -31,8 +30,9 @@ class CoreDataManager {
         item.locationName = locationName
         item.price = price
         item.locationURL = locationURL
-        item.memo = memo          // 新增
-        item.photoData = photoData // 新增
+        item.memo = memo
+        item.photoData = photoData
+        item.transportDuration = transportDuration
         
         save()
         return item

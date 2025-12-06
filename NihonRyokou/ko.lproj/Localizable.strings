@@ -1,16 +1,21 @@
 "app_title" = "일본 여행 계획";
 "add_item_title" = "항목 추가";
-"activity" = "일정";
 "transport" = "교통";
 "hotel" = "숙소";
 "restaurant" = "식당";
+"activity" = "관광";
+
 "title_placeholder_default" = "제목 (예: 도쿄역)";
 "title_placeholder_transport" = "역 / 기차 이름";
 "title_placeholder_hotel" = "호텔 이름";
 "title_placeholder_restaurant" = "식당 이름";
+
 "location_placeholder" = "위치";
 "price_placeholder" = "가격 (엔)";
 "url_placeholder" = "URL (선택)";
+"memo_placeholder" = "메모 (선택)";
+"travel_time_placeholder" = "이동 시간";
+
 "add_button_title" = "일정에 추가";
 "delete_action" = "삭제";
 "settings_title" = "설정";
@@ -25,7 +30,7 @@
 "cancel" = "취소";
 
 /* 알림 및 오류 */
-"alert_added_message" = "추가되었습니다!";
+"alert_added_message" = "추가되었습니다! ✨";
 "alert_error_title" = "입력 오류";
 "alert_title_empty" = "제목을 입력해주세요";
 "alert_price_invalid" = "가격은 숫자로 입력해주세요";
@@ -33,5 +38,7 @@
 "ok_action" = "확인";
 "date_placeholder" = "날짜";
 
-"memo_placeholder" = "메모 (선택)";
+/* 새로운 기능 */
 "photo_button" = " 사진";
+"hour" = "시간";
+"minute" = "분";

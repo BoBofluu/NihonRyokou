@@ -1,15 +1,19 @@
 import UIKit
 import PhotosUI
 
-class InputViewController: UIViewController, PHPickerViewControllerDelegate {
+class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIPickerViewDelegate, UIPickerViewDataSource {
     
     var onSave: (() -> Void)?
     private var selectedImageData: Data?
     
-    // 用來控制照片區塊高度的約束
     private var photoContainerHeightConstraint: NSLayoutConstraint?
+    private var durationFieldHeightConstraint: NSLayoutConstraint?
     
-    // 主容器
+    private let hours = Array(0...24)
+    private let minutes = Array(0...59)
+    private var selectedHour = 0
+    private var selectedMinute = 0
+    
     private let containerView: UIView = {
         let view = UIView()
         view.backgroundColor = .white
@@ -49,7 +53,6 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate {
     }()
     
     // MARK: - Date Picker
-    
     private let dateInputWrapper: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1.0)
@@ -77,8 +80,15 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate {
         return dp
     }()
     
-    // MARK: - Photo Area
+    // MARK: - Duration Picker (新增)
+    private lazy var durationPicker: UIPickerView = {
+        let picker = UIPickerView()
+        picker.delegate = self
+        picker.dataSource = self
+        return picker
+    }()
     
+    // MARK: - Photo Area
     private let photoContainer: UIView = {
         let view = UIView()
         view.backgroundColor = .clear
@@ -90,7 +100,6 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate {
         let btn = UIButton(type: .system)
         var config = UIButton.Configuration.gray()
         config.image = UIImage(systemName: "camera.fill")
-        // 修改：使用多語言
         config.title = "photo_button".localized
         config.baseForegroundColor = Theme.textDark
         config.background.backgroundColor = UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1.0)
@@ -109,16 +118,13 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate {
         iv.backgroundColor = .secondarySystemBackground
         iv.translatesAutoresizingMaskIntoConstraints = false
         iv.isHidden = true
-        
         iv.isUserInteractionEnabled = true
         let tap = UITapGestureRecognizer(target: self, action: #selector(didTapPreviewImage))
         iv.addGestureRecognizer(tap)
-        
         return iv
     }()
     
     // MARK: - Input Fields
-    
     private func createCuteTextField(placeholder: String, keyboardType: UIKeyboardType = .default, iconName: String? = nil) -> UITextField {
         let tf = UITextField()
         tf.placeholder = placeholder
@@ -148,6 +154,13 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate {
     }
     
     private lazy var titleField = createCuteTextField(placeholder: "title_placeholder_default".localized, iconName: "pencil")
+    
+    private lazy var durationField: UITextField = {
+        let tf = createCuteTextField(placeholder: "travel_time_placeholder".localized, iconName: "clock")
+        tf.inputView = durationPicker // 設定 Picker 為輸入源
+        return tf
+    }()
+    
     private lazy var locationField = createCuteTextField(placeholder: "location_placeholder".localized, iconName: "mappin.and.ellipse")
     private lazy var memoField = createCuteTextField(placeholder: "memo_placeholder".localized, iconName: "note.text")
     private lazy var priceField = createCuteTextField(placeholder: "price_placeholder".localized, keyboardType: .numberPad, iconName: "yensign.circle")
@@ -194,6 +207,7 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate {
         toolbar.setItems([flexSpace, doneBtn], animated: true)
         
         priceField.inputAccessoryView = toolbar
+        durationField.inputAccessoryView = toolbar // Picker 也需要 Done 按鈕
     }
     
     private func setupActions() {
@@ -206,8 +220,8 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate {
         containerView.addSubview(scrollView)
         scrollView.addSubview(scrollContentView)
         
-        // 加入所有元件
-        [segmentedControl, dateInputWrapper, titleField, locationField, memoField, priceField, urlField, photoContainer, saveButton].forEach {
+        // 加入 durationField
+        [segmentedControl, dateInputWrapper, titleField, durationField, locationField, memoField, priceField, urlField, photoContainer, saveButton].forEach {
             scrollContentView.addSubview($0)
         }
         
@@ -221,26 +235,23 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate {
         let spacing: CGFloat = 20
         
         NSLayoutConstraint.activate([
-            // Container
             containerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
             containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             containerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             containerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10),
             
-            // ScrollView
             scrollView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 20),
             scrollView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -20),
             
-            // ScrollContentView
             scrollContentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
             scrollContentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
             scrollContentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
             scrollContentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             scrollContentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
             
-            // 1. Segmented Control
+            // 1. Segment
             segmentedControl.topAnchor.constraint(equalTo: scrollContentView.topAnchor),
             segmentedControl.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
             segmentedControl.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
@@ -266,35 +277,41 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate {
             titleField.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
             titleField.heightAnchor.constraint(equalToConstant: fieldHeight),
             
-            // 4. Location
-            locationField.topAnchor.constraint(equalTo: titleField.bottomAnchor, constant: 16),
+            // 4. Duration (New) - 只在交通顯示
+            durationField.topAnchor.constraint(equalTo: titleField.bottomAnchor, constant: 16),
+            durationField.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
+            durationField.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
+            // Height managed by constraint
+            
+            // 5. Location
+            locationField.topAnchor.constraint(equalTo: durationField.bottomAnchor, constant: 16),
             locationField.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
             locationField.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
             locationField.heightAnchor.constraint(equalToConstant: fieldHeight),
             
-            // 5. Memo
+            // 6. Memo
             memoField.topAnchor.constraint(equalTo: locationField.bottomAnchor, constant: 16),
             memoField.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
             memoField.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
             memoField.heightAnchor.constraint(equalToConstant: fieldHeight),
             
-            // 6. Price
+            // 7. Price
             priceField.topAnchor.constraint(equalTo: memoField.bottomAnchor, constant: 16),
             priceField.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
             priceField.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
             priceField.heightAnchor.constraint(equalToConstant: fieldHeight),
             
-            // 7. URL
+            // 8. URL
             urlField.topAnchor.constraint(equalTo: priceField.bottomAnchor, constant: 16),
             urlField.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
             urlField.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
             urlField.heightAnchor.constraint(equalToConstant: fieldHeight),
             
-            // 8. Photo Container
+            // 9. Photo
             photoContainer.topAnchor.constraint(equalTo: urlField.bottomAnchor, constant: 20),
             photoContainer.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
             photoContainer.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
-            // Height is managed by photoContainerHeightConstraint
+            // Height managed by constraint
             
             photoButton.leadingAnchor.constraint(equalTo: photoContainer.leadingAnchor),
             photoButton.centerYAnchor.constraint(equalTo: photoContainer.centerYAnchor),
@@ -306,7 +323,7 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate {
             photoPreview.widthAnchor.constraint(equalToConstant: 50),
             photoPreview.heightAnchor.constraint(equalToConstant: 50),
             
-            // 9. Save Button (修正：加入陣列中)
+            // 10. Save
             saveButton.topAnchor.constraint(equalTo: photoContainer.bottomAnchor, constant: 30),
             saveButton.centerXAnchor.constraint(equalTo: scrollContentView.centerXAnchor),
             saveButton.widthAnchor.constraint(equalToConstant: 220),
@@ -314,16 +331,54 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate {
             saveButton.bottomAnchor.constraint(equalTo: scrollContentView.bottomAnchor, constant: -20)
         ])
         
-        // 額外啟用照片區塊的高度約束
+        durationFieldHeightConstraint = durationField.heightAnchor.constraint(equalToConstant: 50)
+        durationFieldHeightConstraint?.isActive = true
+        
         photoContainerHeightConstraint = photoContainer.heightAnchor.constraint(equalToConstant: 60)
         photoContainerHeightConstraint?.isActive = true
+    }
+    
+    // MARK: - PickerView Delegate & DataSource
+    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+        return 2 // Hour, Minute
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        return component == 0 ? hours.count : minutes.count
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+        if component == 0 {
+            return "\(hours[row]) \("hour".localized)"
+        } else {
+            return "\(minutes[row]) \("minute".localized)"
+        }
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+        if component == 0 { selectedHour = hours[row] }
+        else { selectedMinute = minutes[row] }
+        
+        updateDurationText()
+    }
+    
+    private func updateDurationText() {
+        if selectedHour == 0 && selectedMinute == 0 {
+            durationField.text = ""
+        } else if selectedHour == 0 {
+            durationField.text = "\(selectedMinute)\("minute".localized)"
+        } else if selectedMinute == 0 {
+            durationField.text = "\(selectedHour)\("hour".localized)"
+        } else {
+            durationField.text = "\(selectedHour)\("hour".localized) \(selectedMinute)\("minute".localized)"
+        }
     }
     
     // MARK: - Logic
     @objc private func segmentChanged() {
         let index = segmentedControl.selectedSegmentIndex
         
-        // 交通 (0) -> 隱藏照片; 其他 -> 顯示
+        // 1. 照片顯示邏輯：交通(0)隱藏
         if index == 0 {
             photoContainer.isHidden = true
             photoContainerHeightConstraint?.constant = 0
@@ -334,11 +389,21 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate {
             photoButton.alpha = 1
         }
         
+        // 2. 移動時間邏輯：只有交通(0)顯示
+        if index == 0 {
+            durationField.isHidden = false
+            durationFieldHeightConstraint?.constant = 50
+            durationField.alpha = 1
+        } else {
+            durationField.isHidden = true
+            durationFieldHeightConstraint?.constant = 0
+            durationField.alpha = 0
+        }
+        
         UIView.animate(withDuration: 0.3) {
             self.view.layoutIfNeeded()
         }
         
-        // Placeholder
         switch index {
         case 0: titleField.placeholder = "title_placeholder_transport".localized
         case 1: titleField.placeholder = "title_placeholder_hotel".localized
@@ -435,21 +500,24 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate {
             price: price,
             locationURL: urlString,
             memo: memoField.text,
-            photoData: selectedImageData
+            photoData: selectedImageData,
+            transportDuration: durationField.text
         )
         
         onSave?()
         
-        // Reset
         titleField.text = ""
         locationField.text = ""
         priceField.text = ""
         urlField.text = ""
         memoField.text = ""
+        durationField.text = ""
         selectedImageData = nil
         photoPreview.image = nil
         photoPreview.isHidden = true
         datePicker.date = Date()
+        selectedHour = 0
+        selectedMinute = 0
         
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
@@ -468,8 +536,6 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate {
     }
 }
 
-// 確保其他檔案 (CoreDataManager) 中 createItem 方法簽名有加上 memo 和 photoData，否則這裡會報錯。
-// 這裡補充 Extension 避免 UIViewController.dismissModal 報錯 (若之前沒加)
 extension UIViewController {
     @objc func dismissPreview() {
         dismiss(animated: true)
