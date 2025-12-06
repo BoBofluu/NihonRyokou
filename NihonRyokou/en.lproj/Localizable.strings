@@ -1,4 +1,4 @@
-"app_title" = "Japan Itinerary";
+"app_title" = "Itinerary";
 "add_item_title" = "Add Item";
 "transport" = "Transport";
 "hotel" = "Hotel";
@@ -42,3 +42,5 @@
 "photo_button" = " Photo";
 "hour" = "hr";
 "minute" = "min";
+/* ... 原有內容 ... */
+"alert_price_too_high" = "Price is too high (Max 9,999,999,999)";

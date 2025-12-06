@@ -16,6 +16,16 @@ class ItineraryCell: UITableViewCell {
         return view
     }()
     
+    // 主 Stack：[Icon, TitleStack, Spacer, AccessoryStack]
+    private let mainStack: UIStackView = {
+        let stack = UIStackView()
+        stack.axis = .horizontal
+        stack.alignment = .center
+        stack.spacing = 12
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        return stack
+    }()
+    
     private let timeLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.monospacedDigitSystemFont(ofSize: 14, weight: .bold)
@@ -29,16 +39,18 @@ class ItineraryCell: UITableViewCell {
         iv.contentMode = .scaleAspectFit
         iv.tintColor = Theme.accentColor
         iv.translatesAutoresizingMaskIntoConstraints = false
+        // 固定 Icon 大小
+        iv.widthAnchor.constraint(equalToConstant: 24).isActive = true
+        iv.heightAnchor.constraint(equalToConstant: 24).isActive = true
         return iv
     }()
     
-    // 左側文字堆疊 (標題 + 備註)
+    // 中間：標題 + 備註
     private let titleStack: UIStackView = {
         let stack = UIStackView()
         stack.axis = .vertical
-        stack.spacing = 2
+        stack.spacing = 4
         stack.alignment = .leading
-        stack.translatesAutoresizingMaskIntoConstraints = false
         return stack
     }()
     
@@ -58,7 +70,38 @@ class ItineraryCell: UITableViewCell {
         return label
     }()
     
-    // 右側照片
+    // 右側區域：[價格Stack, 照片]
+    private let accessoryStack: UIStackView = {
+        let stack = UIStackView()
+        stack.axis = .horizontal
+        stack.spacing = 8
+        stack.alignment = .center
+        return stack
+    }()
+    
+    // 價格 + 移動時間 (垂直排列)
+    private let priceInfoStack: UIStackView = {
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.alignment = .trailing // 靠右對齊
+        stack.spacing = 2
+        return stack
+    }()
+    
+    private let priceLabel: UILabel = {
+        let label = UILabel()
+        label.font = Theme.font(size: 14, weight: .bold)
+        label.textColor = Theme.secondaryAccent
+        return label
+    }()
+    
+    private let durationLabel: UILabel = {
+        let label = UILabel()
+        label.font = Theme.font(size: 12, weight: .medium)
+        label.textColor = .systemGray
+        return label
+    }()
+    
     private let photoImageView: UIImageView = {
         let iv = UIImageView()
         iv.contentMode = .scaleAspectFill
@@ -66,35 +109,9 @@ class ItineraryCell: UITableViewCell {
         iv.layer.cornerRadius = 8
         iv.backgroundColor = .systemGray6
         iv.translatesAutoresizingMaskIntoConstraints = false
+        iv.widthAnchor.constraint(equalToConstant: 40).isActive = true
+        iv.heightAnchor.constraint(equalToConstant: 40).isActive = true
         return iv
-    }()
-    
-    // 右側資訊堆疊 (價格 + 移動時間)
-    private let rightInfoStack: UIStackView = {
-        let stack = UIStackView()
-        stack.axis = .vertical
-        stack.spacing = 4
-        stack.alignment = .trailing // 靠右對齊
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        return stack
-    }()
-    
-    // 價格 Label
-    private let priceLabel: UILabel = {
-        let label = UILabel()
-        label.font = Theme.font(size: 14, weight: .bold)
-        label.textColor = Theme.secondaryAccent
-        label.textAlignment = .right
-        return label
-    }()
-    
-    // 移動時間 Label
-    private let durationLabel: UILabel = {
-        let label = UILabel()
-        label.font = Theme.font(size: 12, weight: .medium)
-        label.textColor = .systemGray
-        label.textAlignment = .right
-        return label
     }()
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -109,18 +126,32 @@ class ItineraryCell: UITableViewCell {
         selectionStyle = .none
         
         contentView.addSubview(containerView)
-        containerView.addSubview(timeLabel)
-        containerView.addSubview(iconView)
         
+        // 組裝 Stack Views
         titleStack.addArrangedSubview(titleLabel)
         titleStack.addArrangedSubview(memoLabel)
-        containerView.addSubview(titleStack)
         
-        rightInfoStack.addArrangedSubview(priceLabel)
-        rightInfoStack.addArrangedSubview(durationLabel)
-        containerView.addSubview(rightInfoStack)
+        priceInfoStack.addArrangedSubview(priceLabel)
+        priceInfoStack.addArrangedSubview(durationLabel)
         
-        containerView.addSubview(photoImageView)
+        accessoryStack.addArrangedSubview(priceInfoStack)
+        accessoryStack.addArrangedSubview(photoImageView)
+        
+        mainStack.addArrangedSubview(timeLabel)
+        mainStack.addArrangedSubview(iconView)
+        mainStack.addArrangedSubview(titleStack)
+        
+        // 加一個彈性空間，把右側資訊推到底
+        let spacer = UIView()
+        mainStack.addArrangedSubview(spacer)
+        mainStack.addArrangedSubview(accessoryStack)
+        
+        // 設定 spacer 的 hugging priority 低，讓它盡量撐開
+        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        // 設定右側資訊抗壓縮，確保不被擠掉
+        accessoryStack.setContentCompressionResistancePriority(.required, for: .horizontal)
+        
+        containerView.addSubview(mainStack)
         
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 4),
@@ -128,33 +159,14 @@ class ItineraryCell: UITableViewCell {
             containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             
-            // Time
-            timeLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            timeLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
-            timeLabel.widthAnchor.constraint(equalToConstant: 45),
+            // Main Stack 填滿 Container (留邊距)
+            mainStack.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 8),
+            mainStack.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -8),
+            mainStack.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
+            mainStack.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
             
-            // Icon
-            iconView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            iconView.leadingAnchor.constraint(equalTo: timeLabel.trailingAnchor, constant: 8),
-            iconView.widthAnchor.constraint(equalToConstant: 24),
-            iconView.heightAnchor.constraint(equalToConstant: 24),
-            
-            // Photo (Always Right)
-            photoImageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            photoImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
-            photoImageView.widthAnchor.constraint(equalToConstant: 40),
-            photoImageView.heightAnchor.constraint(equalToConstant: 40),
-            
-            // Right Info Stack (Left of Photo)
-            rightInfoStack.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            rightInfoStack.trailingAnchor.constraint(equalTo: photoImageView.leadingAnchor, constant: -8),
-            // 防止寬度過大擠壓標題
-            rightInfoStack.widthAnchor.constraint(lessThanOrEqualToConstant: 100),
-            
-            // Title Stack (Left of Right Info)
-            titleStack.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            titleStack.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 12),
-            titleStack.trailingAnchor.constraint(lessThanOrEqualTo: rightInfoStack.leadingAnchor, constant: -8)
+            // Time Label 固定寬度
+            timeLabel.widthAnchor.constraint(equalToConstant: 45)
         ])
     }
     
@@ -170,7 +182,6 @@ class ItineraryCell: UITableViewCell {
         timeLabel.text = item.timestamp.map { formatter.string(from: $0) } ?? "--:--"
         titleLabel.text = item.title
         
-        // 備註
         if let memo = item.memo, !memo.isEmpty {
             memoLabel.text = memo
             memoLabel.isHidden = false
@@ -178,67 +189,58 @@ class ItineraryCell: UITableViewCell {
             memoLabel.isHidden = true
         }
         
-        // 價格顯示
+        // 修改：價格顯示防呆
         if item.price > 0 {
-            priceLabel.text = "¥\(Int(item.price))"
+            // 使用 %.0f 格式化，避免 Double 轉 Int 溢位崩潰
+            // 這會顯示不帶小數點的數字，即使數字大到超過 Int 範圍也不會當機
+            let priceString = String(format: "%.0f", item.price)
+            priceLabel.text = "¥\(priceString)"
             priceLabel.isHidden = false
         } else {
             priceLabel.isHidden = true
         }
         
-        // Icon & Duration
+        // ... (保留後續 Icon, Style, Photo 邏輯)
         let imageName: String
         switch item.type {
         case "transport":
             imageName = "tram.fill"
-            // 只有交通顯示移動時間
-            if let duration = item.transportDuration, !duration.isEmpty {
-                durationLabel.text = duration // 顯示 "1時間 30分"
+            containerView.backgroundColor = UIColor(red: 0.9, green: 0.95, blue: 1.0, alpha: 1.0)
+            iconView.tintColor = Theme.secondaryAccent
+            if let dur = item.transportDuration, !dur.isEmpty {
+                durationLabel.text = dur
                 durationLabel.isHidden = false
             } else {
                 durationLabel.isHidden = true
             }
         case "hotel":
             imageName = "bed.double.fill"
+            containerView.backgroundColor = .white
+            iconView.tintColor = Theme.accentColor
             durationLabel.isHidden = true
         case "restaurant":
             imageName = "fork.knife"
+            containerView.backgroundColor = .white
+            iconView.tintColor = Theme.accentColor
             durationLabel.isHidden = true
         case "activity":
             imageName = "figure.walk"
+            containerView.backgroundColor = .white
+            iconView.tintColor = Theme.accentColor
             durationLabel.isHidden = true
         default:
             imageName = "mappin.circle.fill"
+            containerView.backgroundColor = .white
+            iconView.tintColor = Theme.accentColor
             durationLabel.isHidden = true
         }
         iconView.image = UIImage(systemName: imageName)
         
-        // Style
-        if item.type == "transport" {
-            containerView.backgroundColor = UIColor(red: 0.9, green: 0.95, blue: 1.0, alpha: 1.0)
-            iconView.tintColor = Theme.secondaryAccent
-        } else {
-            containerView.backgroundColor = .white
-            iconView.tintColor = Theme.accentColor
-        }
-        
-        // Photo Visibility Handling
         if let data = item.photoData, let image = UIImage(data: data) {
             photoImageView.image = image
             photoImageView.isHidden = false
-            // 若有照片，StackView 靠照片左邊 (約束已設)
-            
         } else {
-            // 若無照片，隱藏 ImageView
             photoImageView.isHidden = true
-            
-            // 這裡有個小技巧：如果沒照片，我們希望能讓 InfoStack 靠到最右邊
-            // 但因為約束是寫死的 (rightInfoStack.trailing = photoImageView.leading - 8)
-            // 所以我們可以把 photoImageView 的寬度約束設為 0 (或隱藏時 AutoLayout 自動處理?)
-            // 為了保險，我們手動處理一下寬度約束
-            // 但最簡單的方法是：讓 photoImageView 變成透明佔位符，或者更新約束。
-            // 為了保持簡單：我們讓 photoImageView 雖然隱藏但保留佔位 (alpha=0)，這樣排版不會亂。
-            // 或者，如果您希望它靠右，我們需要把 photoImageView 的寬度 constraint 變成 0。
         }
     }
 }

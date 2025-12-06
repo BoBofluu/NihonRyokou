@@ -94,14 +94,17 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         let sectionData = sections[section]
         let dateFormatter = DateFormatter()
         dateFormatter.locale = Locale.current
-        // 修改：顯示星期 (例：2025/12/04 (Thu))
         dateFormatter.dateFormat = "yyyy/MM/dd (EEE)"
         
         let dateStr = dateFormatter.string(from: sectionData.date)
-        let priceStr = "¥\(Int(sectionData.totalAmount))"
+        
+        // 修改：使用 String(format:) 避免 Int 溢位崩潰
+        // 原本: let priceStr = "¥\(Int(sectionData.totalAmount))" -> 會崩潰
+        let priceStr = String(format: "%.0f", sectionData.totalAmount)
+        
         let totalLabel = "total".localized
         
-        label.text = "\(dateStr)    \(totalLabel): \(priceStr)"
+        label.text = "\(dateStr)    \(totalLabel): ¥\(priceStr)"
         
         headerView.addSubview(label)
         

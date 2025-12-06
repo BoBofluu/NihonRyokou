@@ -465,14 +465,25 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         
         let priceText = priceField.text ?? ""
         var price: Double = 0.0
+        
         if !priceText.isEmpty {
             guard let validPrice = Double(priceText) else {
                 showAlert(message: "alert_price_invalid".localized)
                 return
             }
+            
+            // 新增：金額上限檢查 (防止 Int 溢位崩潰)
+            // 設定上限為 9,999,999,999 (約 100 億)，這在 Int 範圍內且足夠旅遊使用
+            let maxPrice: Double = 9_999_999_999
+            if validPrice > maxPrice {
+                showAlert(message: "alert_price_too_high".localized)
+                return
+            }
+            
             price = validPrice
         }
         
+        // ... (保留 URL 檢查與後續儲存邏輯)
         var urlString: String? = nil
         if let text = urlField.text, !text.isEmpty {
             let lowerText = text.lowercased()
@@ -506,6 +517,7 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         
         onSave?()
         
+        // Reset
         titleField.text = ""
         locationField.text = ""
         priceField.text = ""
