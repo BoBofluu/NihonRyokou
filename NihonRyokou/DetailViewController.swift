@@ -96,7 +96,9 @@ class DetailViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        title = "Details"
+        
+        title = "detail_title".localized
+        
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "pencil"), style: .plain, target: self, action: #selector(didTapEdit))
         
         setupUI()
@@ -203,7 +205,7 @@ class DetailViewController: UIViewController {
         if let priceString = numberFormatter.string(from: NSNumber(value: item.price)) {
             priceLabel.text = "¥\(priceString)"
         } else {
-             priceLabel.text = "¥\(Int(item.price))"
+            priceLabel.text = "¥\(Int(item.price))"
         }
         
         memoLabel.text = item.memo ?? ""

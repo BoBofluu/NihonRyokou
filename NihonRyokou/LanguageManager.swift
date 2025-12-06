@@ -6,7 +6,6 @@ class LanguageManager {
     private let languageKey = "selectedLanguage"
     
     enum Language: String, CaseIterable {
-        case system = "system"
         case english = "en"
         case chinese = "zh-Hant"
         case korean = "ko"
@@ -14,7 +13,6 @@ class LanguageManager {
         
         var displayName: String {
             switch self {
-            case .system: return "System Default"
             case .english: return "English"
             case .chinese: return "繁體中文"
             case .korean: return "한국어"
@@ -25,11 +23,11 @@ class LanguageManager {
     
     var currentLanguage: Language {
         get {
-            guard let rawValue = UserDefaults.standard.string(forKey: languageKey),
-                  let lang = Language(rawValue: rawValue) else {
-                return .system
+            if let rawValue = UserDefaults.standard.string(forKey: languageKey),
+               let lang = Language(rawValue: rawValue) {
+                return lang
             }
-            return lang
+            return .japanese
         }
         set {
             UserDefaults.standard.set(newValue.rawValue, forKey: languageKey)
@@ -39,8 +37,7 @@ class LanguageManager {
     func localizedString(_ key: String) -> String {
         var bundle = Bundle.main
         
-        if currentLanguage != .system,
-           let path = Bundle.main.path(forResource: currentLanguage.rawValue, ofType: "lproj"),
+        if let path = Bundle.main.path(forResource: currentLanguage.rawValue, ofType: "lproj"),
            let langBundle = Bundle(path: path) {
             bundle = langBundle
         }

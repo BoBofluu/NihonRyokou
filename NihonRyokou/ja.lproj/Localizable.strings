@@ -42,5 +42,5 @@
 "photo_button" = " 写真";
 "hour" = "時間";
 "minute" = "分";
-/* ... 原有內容 ... */
 "alert_price_too_high" = "金額が大きすぎます (最大 9,999,999,999)";
+"detail_title" = "詳細";

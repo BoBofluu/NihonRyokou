@@ -42,5 +42,5 @@
 "photo_button" = " 사진";
 "hour" = "시간";
 "minute" = "분";
-/* ... 原有內容 ... */
 "alert_price_too_high" = "금액이 너무 큽니다 (최대 9,999,999,999)";
+"detail_title" = "상세 정보";

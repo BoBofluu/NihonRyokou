@@ -80,7 +80,7 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         return dp
     }()
     
-    // MARK: - Duration Picker (新增)
+    // MARK: - Duration Picker
     private lazy var durationPicker: UIPickerView = {
         let picker = UIPickerView()
         picker.delegate = self
@@ -157,7 +157,7 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
     
     private lazy var durationField: UITextField = {
         let tf = createCuteTextField(placeholder: "travel_time_placeholder".localized, iconName: "clock")
-        tf.inputView = durationPicker // 設定 Picker 為輸入源
+        tf.inputView = durationPicker
         return tf
     }()
     
@@ -207,7 +207,7 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         toolbar.setItems([flexSpace, doneBtn], animated: true)
         
         priceField.inputAccessoryView = toolbar
-        durationField.inputAccessoryView = toolbar // Picker 也需要 Done 按鈕
+        durationField.inputAccessoryView = toolbar
     }
     
     private func setupActions() {
@@ -220,7 +220,6 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         containerView.addSubview(scrollView)
         scrollView.addSubview(scrollContentView)
         
-        // 加入 durationField
         [segmentedControl, dateInputWrapper, titleField, durationField, locationField, memoField, priceField, urlField, photoContainer, saveButton].forEach {
             scrollContentView.addSubview($0)
         }
@@ -251,13 +250,11 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
             scrollContentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             scrollContentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
             
-            // 1. Segment
             segmentedControl.topAnchor.constraint(equalTo: scrollContentView.topAnchor),
             segmentedControl.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
             segmentedControl.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
             segmentedControl.heightAnchor.constraint(equalToConstant: 40),
             
-            // 2. Date
             dateInputWrapper.topAnchor.constraint(equalTo: segmentedControl.bottomAnchor, constant: 20),
             dateInputWrapper.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
             dateInputWrapper.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
@@ -271,47 +268,38 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
             datePicker.leadingAnchor.constraint(equalTo: dateIconView.trailingAnchor, constant: 12),
             datePicker.centerYAnchor.constraint(equalTo: dateInputWrapper.centerYAnchor),
             
-            // 3. Title
             titleField.topAnchor.constraint(equalTo: dateInputWrapper.bottomAnchor, constant: spacing),
             titleField.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
             titleField.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
             titleField.heightAnchor.constraint(equalToConstant: fieldHeight),
             
-            // 4. Duration (New) - 只在交通顯示
             durationField.topAnchor.constraint(equalTo: titleField.bottomAnchor, constant: 16),
             durationField.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
             durationField.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
-            // Height managed by constraint
             
-            // 5. Location
             locationField.topAnchor.constraint(equalTo: durationField.bottomAnchor, constant: 16),
             locationField.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
             locationField.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
             locationField.heightAnchor.constraint(equalToConstant: fieldHeight),
             
-            // 6. Memo
             memoField.topAnchor.constraint(equalTo: locationField.bottomAnchor, constant: 16),
             memoField.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
             memoField.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
             memoField.heightAnchor.constraint(equalToConstant: fieldHeight),
             
-            // 7. Price
             priceField.topAnchor.constraint(equalTo: memoField.bottomAnchor, constant: 16),
             priceField.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
             priceField.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
             priceField.heightAnchor.constraint(equalToConstant: fieldHeight),
             
-            // 8. URL
             urlField.topAnchor.constraint(equalTo: priceField.bottomAnchor, constant: 16),
             urlField.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
             urlField.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
             urlField.heightAnchor.constraint(equalToConstant: fieldHeight),
             
-            // 9. Photo
             photoContainer.topAnchor.constraint(equalTo: urlField.bottomAnchor, constant: 20),
             photoContainer.leadingAnchor.constraint(equalTo: scrollContentView.leadingAnchor, constant: 20),
             photoContainer.trailingAnchor.constraint(equalTo: scrollContentView.trailingAnchor, constant: -20),
-            // Height managed by constraint
             
             photoButton.leadingAnchor.constraint(equalTo: photoContainer.leadingAnchor),
             photoButton.centerYAnchor.constraint(equalTo: photoContainer.centerYAnchor),
@@ -323,7 +311,6 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
             photoPreview.widthAnchor.constraint(equalToConstant: 50),
             photoPreview.heightAnchor.constraint(equalToConstant: 50),
             
-            // 10. Save
             saveButton.topAnchor.constraint(equalTo: photoContainer.bottomAnchor, constant: 30),
             saveButton.centerXAnchor.constraint(equalTo: scrollContentView.centerXAnchor),
             saveButton.widthAnchor.constraint(equalToConstant: 220),
@@ -339,46 +326,26 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
     }
     
     // MARK: - PickerView Delegate & DataSource
-    func numberOfComponents(in pickerView: UIPickerView) -> Int {
-        return 2 // Hour, Minute
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        return component == 0 ? hours.count : minutes.count
-    }
-    
+    func numberOfComponents(in pickerView: UIPickerView) -> Int { return 2 }
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int { return component == 0 ? hours.count : minutes.count }
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        if component == 0 {
-            return "\(hours[row]) \("hour".localized)"
-        } else {
-            return "\(minutes[row]) \("minute".localized)"
-        }
+        return component == 0 ? "\(hours[row]) \("hour".localized)" : "\(minutes[row]) \("minute".localized)"
     }
-    
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        if component == 0 { selectedHour = hours[row] }
-        else { selectedMinute = minutes[row] }
-        
+        if component == 0 { selectedHour = hours[row] } else { selectedMinute = minutes[row] }
         updateDurationText()
     }
-    
     private func updateDurationText() {
-        if selectedHour == 0 && selectedMinute == 0 {
-            durationField.text = ""
-        } else if selectedHour == 0 {
-            durationField.text = "\(selectedMinute)\("minute".localized)"
-        } else if selectedMinute == 0 {
-            durationField.text = "\(selectedHour)\("hour".localized)"
-        } else {
-            durationField.text = "\(selectedHour)\("hour".localized) \(selectedMinute)\("minute".localized)"
-        }
+        if selectedHour == 0 && selectedMinute == 0 { durationField.text = "" }
+        else if selectedHour == 0 { durationField.text = "\(selectedMinute)\("minute".localized)" }
+        else if selectedMinute == 0 { durationField.text = "\(selectedHour)\("hour".localized)" }
+        else { durationField.text = "\(selectedHour)\("hour".localized) \(selectedMinute)\("minute".localized)" }
     }
     
     // MARK: - Logic
     @objc private func segmentChanged() {
         let index = segmentedControl.selectedSegmentIndex
         
-        // 1. 照片顯示邏輯：交通(0)隱藏
         if index == 0 {
             photoContainer.isHidden = true
             photoContainerHeightConstraint?.constant = 0
@@ -389,7 +356,6 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
             photoButton.alpha = 1
         }
         
-        // 2. 移動時間邏輯：只有交通(0)顯示
         if index == 0 {
             durationField.isHidden = false
             durationFieldHeightConstraint?.constant = 50
@@ -400,9 +366,7 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
             durationField.alpha = 0
         }
         
-        UIView.animate(withDuration: 0.3) {
-            self.view.layoutIfNeeded()
-        }
+        UIView.animate(withDuration: 0.3) { self.view.layoutIfNeeded() }
         
         switch index {
         case 0: titleField.placeholder = "title_placeholder_transport".localized
@@ -413,7 +377,6 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         }
     }
     
-    // MARK: - Photo Actions
     @objc private func didTapPhotoButton() {
         var config = PHPickerConfiguration()
         config.selectionLimit = 1
@@ -426,7 +389,6 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
     func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
         picker.dismiss(animated: true)
         guard let item = results.first else { return }
-        
         if item.itemProvider.canLoadObject(ofClass: UIImage.self) {
             item.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] (image, error) in
                 guard let self = self, let image = image as? UIImage else { return }
@@ -439,51 +401,36 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         }
     }
     
+    // 【修改】直接使用 DetailViewController.swift 中定義好的 ImagePreviewViewController
     @objc private func didTapPreviewImage() {
         guard let image = photoPreview.image else { return }
-        let previewVC = UIViewController()
-        previewVC.view.backgroundColor = .black
-        let imageView = UIImageView(image: image)
-        imageView.contentMode = .scaleAspectFit
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        previewVC.view.addSubview(imageView)
-        NSLayoutConstraint.activate([
-            imageView.topAnchor.constraint(equalTo: previewVC.view.safeAreaLayoutGuide.topAnchor),
-            imageView.bottomAnchor.constraint(equalTo: previewVC.view.safeAreaLayoutGuide.bottomAnchor),
-            imageView.leadingAnchor.constraint(equalTo: previewVC.view.leadingAnchor),
-            imageView.trailingAnchor.constraint(equalTo: previewVC.view.trailingAnchor)
-        ])
+        
+        // 這裡重用專案中已有的 ImagePreviewViewController 類別
+        // 確保 DetailViewController.swift 檔案存在於專案中
+        let previewVC = ImagePreviewViewController(image: image)
+        previewVC.modalPresentationStyle = .fullScreen
         present(previewVC, animated: true)
     }
     
-    // MARK: - Save Logic
     @objc private func handleSave() {
         guard let title = titleField.text, !title.isEmpty else {
             showAlert(message: "alert_title_empty".localized)
             return
         }
-        
         let priceText = priceField.text ?? ""
         var price: Double = 0.0
-        
         if !priceText.isEmpty {
             guard let validPrice = Double(priceText) else {
                 showAlert(message: "alert_price_invalid".localized)
                 return
             }
-            
-            // 新增：金額上限檢查 (防止 Int 溢位崩潰)
-            // 設定上限為 9,999,999,999 (約 100 億)，這在 Int 範圍內且足夠旅遊使用
             let maxPrice: Double = 9_999_999_999
             if validPrice > maxPrice {
                 showAlert(message: "alert_price_too_high".localized)
                 return
             }
-            
             price = validPrice
         }
-        
-        // ... (保留 URL 檢查與後續儲存邏輯)
         var urlString: String? = nil
         if let text = urlField.text, !text.isEmpty {
             let lowerText = text.lowercased()
@@ -493,7 +440,6 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
             }
             urlString = text
         }
-        
         let type: String
         switch segmentedControl.selectedSegmentIndex {
         case 0: type = "transport"
@@ -502,7 +448,6 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         case 3: type = "activity"
         default: type = "other"
         }
-        
         _ = CoreDataManager.shared.createItem(
             type: type,
             timestamp: datePicker.date,
@@ -514,10 +459,8 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
             photoData: selectedImageData,
             transportDuration: durationField.text
         )
-        
         onSave?()
         
-        // Reset
         titleField.text = ""
         locationField.text = ""
         priceField.text = ""
@@ -545,11 +488,5 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         let alert = UIAlertController(title: "alert_error_title".localized, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "ok_action".localized, style: .default))
         present(alert, animated: true)
-    }
-}
-
-extension UIViewController {
-    @objc func dismissPreview() {
-        dismiss(animated: true)
     }
 }

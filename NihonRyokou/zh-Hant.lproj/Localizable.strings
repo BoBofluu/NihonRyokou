@@ -42,5 +42,5 @@
 "photo_button" = " 照片";
 "hour" = "小時";
 "minute" = "分";
-/* ... 原有內容 ... */
 "alert_price_too_high" = "金額過大 (上限 9,999,999,999)";
+"detail_title" = "詳細資訊";
