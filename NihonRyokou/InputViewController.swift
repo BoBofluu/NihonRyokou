@@ -470,8 +470,8 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
             price: price,
             locationURL: urlString,
             memo: memoField.text,
-            photoData: selectedImageData,
-            transportDuration: durationField.text
+            photoData: (type == "transport") ? nil : selectedImageData,
+            transportDuration: (type == "transport") ? durationField.text : nil
         )
         onSave?()
         resetFields()
@@ -496,7 +496,7 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         photoPreview.isHidden = true
         photoDeleteButton.isHidden = true
         photoButton.isHidden = false
-        datePicker.date = Date()
+
         selectedHour = 0
         selectedMinute = 0
     }
