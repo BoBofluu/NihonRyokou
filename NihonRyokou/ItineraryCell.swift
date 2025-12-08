@@ -1,113 +1,93 @@
 import UIKit
+import Then
+import SnapKit
 
 class ItineraryCell: UITableViewCell {
     
     static let identifier = "ItineraryCell"
     
-    private let containerView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .white
-        view.layer.cornerRadius = Theme.cornerRadius
-        view.layer.shadowColor = Theme.accentColor.cgColor
-        view.layer.shadowOpacity = 0.1
-        view.layer.shadowOffset = CGSize(width: 0, height: 2)
-        view.layer.shadowRadius = 4
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
+    private let containerView = UIView().then {
+        $0.backgroundColor = Theme.cardColor
+        $0.layer.cornerRadius = Theme.cornerRadius
+        $0.layer.shadowColor = Theme.accentColor.cgColor
+        $0.layer.shadowOpacity = 0.1
+        $0.layer.shadowOffset = CGSize(width: 0, height: 2)
+        $0.layer.shadowRadius = 4
+    }
     
-    private let mainStack: UIStackView = {
-        let stack = UIStackView()
-        stack.axis = .horizontal
-        stack.alignment = .center
-        stack.spacing = 12
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        return stack
-    }()
+    private let mainStack = UIStackView().then {
+        $0.axis = .horizontal
+        $0.alignment = .center
+        $0.spacing = 12
+    }
     
-    private let timeLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.monospacedDigitSystemFont(ofSize: 14, weight: .bold)
-        label.textColor = Theme.textDark
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
+    private let timeLabel = UILabel().then {
+        $0.font = UIFont.monospacedDigitSystemFont(ofSize: 14, weight: .bold)
+        $0.textColor = Theme.textDark
+    }
     
-    private let iconView: UIImageView = {
-        let iv = UIImageView()
-        iv.contentMode = .scaleAspectFit
-        iv.tintColor = Theme.accentColor
-        iv.translatesAutoresizingMaskIntoConstraints = false
-        iv.widthAnchor.constraint(equalToConstant: 24).isActive = true
-        iv.heightAnchor.constraint(equalToConstant: 24).isActive = true
-        return iv
-    }()
+    private let iconView = UIImageView().then {
+        $0.contentMode = .scaleAspectFit
+        $0.tintColor = Theme.accentColor
+    }
     
-    private let titleStack: UIStackView = {
-        let stack = UIStackView()
-        stack.axis = .vertical
-        stack.spacing = 4
-        stack.alignment = .leading
-        return stack
-    }()
+    private let titleStack = UIStackView().then {
+        $0.axis = .vertical
+        $0.spacing = 4
+        $0.alignment = .leading
+    }
     
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = Theme.font(size: 16, weight: .semibold)
-        label.textColor = Theme.textDark
-        label.numberOfLines = 1
-        return label
-    }()
+    private let titleLabel = UILabel().then {
+        $0.font = Theme.font(size: 16, weight: .semibold)
+        $0.textColor = Theme.textDark
+        $0.numberOfLines = 1
+        $0.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        $0.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+    }
     
-    private let locationLabel: UILabel = {
-        let label = UILabel()
-        label.font = Theme.font(size: 12, weight: .regular)
-        label.textColor = .systemGray
-        label.numberOfLines = 1
-        return label
-    }()
+    private let locationLabel = UILabel().then {
+        $0.font = Theme.font(size: 12, weight: .regular)
+        $0.textColor = .systemGray
+        $0.numberOfLines = 1
+        $0.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        $0.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+    }
     
-    private let accessoryStack: UIStackView = {
-        let stack = UIStackView()
-        stack.axis = .horizontal
-        stack.spacing = 8
-        stack.alignment = .center
-        return stack
-    }()
+    private let accessoryStack = UIStackView().then {
+        $0.axis = .horizontal
+        $0.spacing = 8
+        $0.alignment = .center
+        $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+    }
     
-    private let priceInfoStack: UIStackView = {
-        let stack = UIStackView()
-        stack.axis = .vertical
-        stack.alignment = .trailing
-        stack.spacing = 2
-        return stack
-    }()
+    private let priceInfoStack = UIStackView().then {
+        $0.axis = .vertical
+        $0.alignment = .trailing
+        $0.spacing = 2
+        $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+    }
     
-    private let priceLabel: UILabel = {
-        let label = UILabel()
-        label.font = Theme.font(size: 14, weight: .bold)
-        label.textColor = Theme.secondaryAccent
-        return label
-    }()
+    private let priceLabel = UILabel().then {
+        $0.font = Theme.font(size: 14, weight: .bold)
+        $0.textColor = Theme.secondaryAccent
+        $0.textAlignment = .right
+        $0.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+    }
     
-    private let durationLabel: UILabel = {
-        let label = UILabel()
-        label.font = Theme.font(size: 12, weight: .medium)
-        label.textColor = .systemGray
-        return label
-    }()
+    private let durationLabel = UILabel().then {
+        $0.font = Theme.font(size: 12, weight: .medium)
+        $0.textColor = .systemGray
+        $0.textAlignment = .right
+        $0.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+    }
     
-    private let photoImageView: UIImageView = {
-        let iv = UIImageView()
-        iv.contentMode = .scaleAspectFill
-        iv.clipsToBounds = true
-        iv.layer.cornerRadius = 8
-        iv.backgroundColor = .systemGray6
-        iv.translatesAutoresizingMaskIntoConstraints = false
-        iv.widthAnchor.constraint(equalToConstant: 40).isActive = true
-        iv.heightAnchor.constraint(equalToConstant: 40).isActive = true
-        return iv
-    }()
+    private let photoImageView = UIImageView().then {
+        $0.contentMode = .scaleAspectFill
+        $0.clipsToBounds = true
+        $0.layer.cornerRadius = 8
+        $0.backgroundColor = .systemGray6
+        $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+    }
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -136,37 +116,40 @@ class ItineraryCell: UITableViewCell {
         mainStack.addArrangedSubview(titleStack)
         
         let spacer = UIView()
+        spacer.setContentHuggingPriority(UILayoutPriority(1), for: .horizontal)
         mainStack.addArrangedSubview(spacer)
+        
         mainStack.addArrangedSubview(accessoryStack)
-        
-        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        
-        titleLabel.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
-        locationLabel.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
-        
-        priceLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        durationLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        
-        priceLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 50).isActive = true
-        priceInfoStack.setContentCompressionResistancePriority(.required, for: .horizontal)
-        photoImageView.setContentCompressionResistancePriority(.required, for: .horizontal)
-        accessoryStack.setContentCompressionResistancePriority(.required, for: .horizontal)
         
         containerView.addSubview(mainStack)
         
-        NSLayoutConstraint.activate([
-            containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 4),
-            containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -4),
-            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            
-            mainStack.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 12),
-            mainStack.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -12),
-            mainStack.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
-            mainStack.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
-            
-            timeLabel.widthAnchor.constraint(equalToConstant: 45)
-        ])
+        containerView.snp.makeConstraints { make in
+            make.top.equalToSuperview().offset(4)
+            make.bottom.equalToSuperview().offset(-4)
+            make.leading.equalToSuperview().offset(16)
+            make.trailing.equalToSuperview().offset(-16)
+        }
+        
+        mainStack.snp.makeConstraints { make in
+            make.top.leading.equalToSuperview().offset(12)
+            make.bottom.trailing.equalToSuperview().offset(-12)
+        }
+        
+        timeLabel.snp.makeConstraints { make in
+            make.width.equalTo(45)
+        }
+        
+        iconView.snp.makeConstraints { make in
+            make.size.equalTo(24)
+        }
+        
+        photoImageView.snp.makeConstraints { make in
+            make.size.equalTo(40)
+        }
+        
+        priceLabel.snp.makeConstraints { make in
+            make.width.greaterThanOrEqualTo(50)
+        }
     }
     
     override func setHighlighted(_ highlighted: Bool, animated: Bool) {
@@ -175,8 +158,10 @@ class ItineraryCell: UITableViewCell {
         }
     }
     
+    // 根據行程項目配置 Cell 內容
     func configure(with item: ItineraryItem) {
         let formatter = DateFormatter()
+        formatter.locale = LanguageManager.shared.currentLocale
         formatter.dateFormat = "HH:mm"
         timeLabel.text = item.timestamp.map { formatter.string(from: $0) } ?? "--:--"
         titleLabel.text = item.title
@@ -204,10 +189,12 @@ class ItineraryCell: UITableViewCell {
         }
         
         let imageName: String
+        
+        // 根據行程類型設定不同的圖示與顏色
         switch item.type {
         case "transport":
             imageName = "tram.fill"
-            containerView.backgroundColor = UIColor(red: 237/255, green: 247/255, blue: 255/255, alpha: 1.0)
+            containerView.backgroundColor = Theme.transportCardColor
             iconView.tintColor = Theme.secondaryAccent
             if let dur = item.transportDuration, !dur.isEmpty {
                 durationLabel.text = dur
@@ -217,22 +204,22 @@ class ItineraryCell: UITableViewCell {
             }
         case "hotel":
             imageName = "bed.double.fill"
-            containerView.backgroundColor = .white
+            containerView.backgroundColor = Theme.cardColor
             iconView.tintColor = Theme.accentColor
             durationLabel.isHidden = true
         case "restaurant":
             imageName = "fork.knife"
-            containerView.backgroundColor = .white
+            containerView.backgroundColor = Theme.cardColor
             iconView.tintColor = Theme.accentColor
             durationLabel.isHidden = true
         case "activity":
             imageName = "figure.walk"
-            containerView.backgroundColor = .white
+            containerView.backgroundColor = Theme.cardColor
             iconView.tintColor = Theme.accentColor
             durationLabel.isHidden = true
         default:
             imageName = "mappin.circle.fill"
-            containerView.backgroundColor = .white
+            containerView.backgroundColor = Theme.cardColor
             iconView.tintColor = Theme.accentColor
             durationLabel.isHidden = true
         }

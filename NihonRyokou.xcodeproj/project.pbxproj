@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		4E62B81124490EE688365CB7 /* Pods_NihonRyokou_NihonRyokouUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49ED7BB3A566484AC5B67DD1 /* Pods_NihonRyokou_NihonRyokouUITests.framework */; };
+		73C48C5F9EABE55D8C1ADE79 /* Pods_NihonRyokou.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A97830F1B9D61291D49ED8C0 /* Pods_NihonRyokou.framework */; };
+		776169205AC3DAB3A587044E /* Pods_NihonRyokouTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EB4E7CACF20F88EBAF8DB1D /* Pods_NihonRyokouTests.framework */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		C7CFF8BC2EDC8D76003F1929 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,6 +30,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		28453A45126DE9D12D983BB4 /* Pods-NihonRyokou-NihonRyokouUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NihonRyokou-NihonRyokouUITests.debug.xcconfig"; path = "Target Support Files/Pods-NihonRyokou-NihonRyokouUITests/Pods-NihonRyokou-NihonRyokouUITests.debug.xcconfig"; sourceTree = "<group>"; };
+		302C6A43993C04A642EFF5DA /* Pods-NihonRyokouTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NihonRyokouTests.debug.xcconfig"; path = "Target Support Files/Pods-NihonRyokouTests/Pods-NihonRyokouTests.debug.xcconfig"; sourceTree = "<group>"; };
+		49ED7BB3A566484AC5B67DD1 /* Pods_NihonRyokou_NihonRyokouUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NihonRyokou_NihonRyokouUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		5982EAD4B1DED873CD853D79 /* Pods-NihonRyokou-NihonRyokouUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NihonRyokou-NihonRyokouUITests.release.xcconfig"; path = "Target Support Files/Pods-NihonRyokou-NihonRyokouUITests/Pods-NihonRyokou-NihonRyokouUITests.release.xcconfig"; sourceTree = "<group>"; };
+		6BDCC5DA00105634BF95501A /* Pods-NihonRyokou.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NihonRyokou.debug.xcconfig"; path = "Target Support Files/Pods-NihonRyokou/Pods-NihonRyokou.debug.xcconfig"; sourceTree = "<group>"; };
+		6EB4E7CACF20F88EBAF8DB1D /* Pods_NihonRyokouTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NihonRyokouTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		8FD9E1AAEBE049CDA1B52CD6 /* Pods-NihonRyokouTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NihonRyokouTests.release.xcconfig"; path = "Target Support Files/Pods-NihonRyokouTests/Pods-NihonRyokouTests.release.xcconfig"; sourceTree = "<group>"; };
+		A4CDE3B0DF3BA0D82CCAD96B /* Pods-NihonRyokou.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NihonRyokou.release.xcconfig"; path = "Target Support Files/Pods-NihonRyokou/Pods-NihonRyokou.release.xcconfig"; sourceTree = "<group>"; };
+		A97830F1B9D61291D49ED8C0 /* Pods_NihonRyokou.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NihonRyokou.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C7CFF8A22EDC8D74003F1929 /* NihonRyokou.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NihonRyokou.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C7CFF8BB2EDC8D76003F1929 /* NihonRyokouTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NihonRyokouTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C7CFF8C52EDC8D76003F1929 /* NihonRyokouUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NihonRyokouUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -65,6 +80,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				73C48C5F9EABE55D8C1ADE79 /* Pods_NihonRyokou.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -72,6 +88,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				776169205AC3DAB3A587044E /* Pods_NihonRyokouTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -79,12 +96,36 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4E62B81124490EE688365CB7 /* Pods_NihonRyokou_NihonRyokouUITests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		92B532F80AF24F4D7D5A8C57 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				6BDCC5DA00105634BF95501A /* Pods-NihonRyokou.debug.xcconfig */,
+				A4CDE3B0DF3BA0D82CCAD96B /* Pods-NihonRyokou.release.xcconfig */,
+				28453A45126DE9D12D983BB4 /* Pods-NihonRyokou-NihonRyokouUITests.debug.xcconfig */,
+				5982EAD4B1DED873CD853D79 /* Pods-NihonRyokou-NihonRyokouUITests.release.xcconfig */,
+				302C6A43993C04A642EFF5DA /* Pods-NihonRyokouTests.debug.xcconfig */,
+				8FD9E1AAEBE049CDA1B52CD6 /* Pods-NihonRyokouTests.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		AFA147AE90BA84E5486320F9 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				A97830F1B9D61291D49ED8C0 /* Pods_NihonRyokou.framework */,
+				49ED7BB3A566484AC5B67DD1 /* Pods_NihonRyokou_NihonRyokouUITests.framework */,
+				6EB4E7CACF20F88EBAF8DB1D /* Pods_NihonRyokouTests.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		C7CFF8992EDC8D73003F1929 = {
 			isa = PBXGroup;
 			children = (
@@ -92,6 +133,8 @@
 				C7CFF8BE2EDC8D76003F1929 /* NihonRyokouTests */,
 				C7CFF8C82EDC8D76003F1929 /* NihonRyokouUITests */,
 				C7CFF8A32EDC8D74003F1929 /* Products */,
+				92B532F80AF24F4D7D5A8C57 /* Pods */,
+				AFA147AE90BA84E5486320F9 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -112,9 +155,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = C7CFF8CE2EDC8D76003F1929 /* Build configuration list for PBXNativeTarget "NihonRyokou" */;
 			buildPhases = (
+				A6BC86EE22235E04BFC3B857 /* [CP] Check Pods Manifest.lock */,
 				C7CFF89E2EDC8D74003F1929 /* Sources */,
 				C7CFF89F2EDC8D74003F1929 /* Frameworks */,
 				C7CFF8A02EDC8D74003F1929 /* Resources */,
+				AC2B650C296379DCFA404162 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -124,8 +169,6 @@
 				C7CFF8A42EDC8D74003F1929 /* NihonRyokou */,
 			);
 			name = NihonRyokou;
-			packageProductDependencies = (
-			);
 			productName = NihonRyokou;
 			productReference = C7CFF8A22EDC8D74003F1929 /* NihonRyokou.app */;
 			productType = "com.apple.product-type.application";
@@ -134,6 +177,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = C7CFF8D32EDC8D76003F1929 /* Build configuration list for PBXNativeTarget "NihonRyokouTests" */;
 			buildPhases = (
+				5E4D2D47E4E48354C66175A3 /* [CP] Check Pods Manifest.lock */,
 				C7CFF8B72EDC8D76003F1929 /* Sources */,
 				C7CFF8B82EDC8D76003F1929 /* Frameworks */,
 				C7CFF8B92EDC8D76003F1929 /* Resources */,
@@ -147,8 +191,6 @@
 				C7CFF8BE2EDC8D76003F1929 /* NihonRyokouTests */,
 			);
 			name = NihonRyokouTests;
-			packageProductDependencies = (
-			);
 			productName = NihonRyokouTests;
 			productReference = C7CFF8BB2EDC8D76003F1929 /* NihonRyokouTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -157,9 +199,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = C7CFF8D62EDC8D76003F1929 /* Build configuration list for PBXNativeTarget "NihonRyokouUITests" */;
 			buildPhases = (
+				60D8813CF9D5C13E605E970B /* [CP] Check Pods Manifest.lock */,
 				C7CFF8C12EDC8D76003F1929 /* Sources */,
 				C7CFF8C22EDC8D76003F1929 /* Frameworks */,
 				C7CFF8C32EDC8D76003F1929 /* Resources */,
+				EC05381FEFD9DC3DA4FFFFDA /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -170,8 +214,6 @@
 				C7CFF8C82EDC8D76003F1929 /* NihonRyokouUITests */,
 			);
 			name = NihonRyokouUITests;
-			packageProductDependencies = (
-			);
 			productName = NihonRyokouUITests;
 			productReference = C7CFF8C52EDC8D76003F1929 /* NihonRyokouUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
@@ -247,6 +289,109 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		5E4D2D47E4E48354C66175A3 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-NihonRyokouTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		60D8813CF9D5C13E605E970B /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-NihonRyokou-NihonRyokouUITests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		A6BC86EE22235E04BFC3B857 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-NihonRyokou-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		AC2B650C296379DCFA404162 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-NihonRyokou/Pods-NihonRyokou-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-NihonRyokou/Pods-NihonRyokou-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-NihonRyokou/Pods-NihonRyokou-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		EC05381FEFD9DC3DA4FFFFDA /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-NihonRyokou-NihonRyokouUITests/Pods-NihonRyokou-NihonRyokouUITests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-NihonRyokou-NihonRyokouUITests/Pods-NihonRyokou-NihonRyokouUITests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-NihonRyokou-NihonRyokouUITests/Pods-NihonRyokou-NihonRyokouUITests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		C7CFF89E2EDC8D74003F1929 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -287,6 +432,7 @@
 /* Begin XCBuildConfiguration section */
 		C7CFF8CF2EDC8D76003F1929 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 6BDCC5DA00105634BF95501A /* Pods-NihonRyokou.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -316,6 +462,7 @@
 		};
 		C7CFF8D02EDC8D76003F1929 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A4CDE3B0DF3BA0D82CCAD96B /* Pods-NihonRyokou.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -380,7 +527,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -443,7 +590,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -464,6 +611,7 @@
 		};
 		C7CFF8D42EDC8D76003F1929 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 302C6A43993C04A642EFF5DA /* Pods-NihonRyokouTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -482,6 +630,7 @@
 		};
 		C7CFF8D52EDC8D76003F1929 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 8FD9E1AAEBE049CDA1B52CD6 /* Pods-NihonRyokouTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -500,6 +649,7 @@
 		};
 		C7CFF8D72EDC8D76003F1929 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 28453A45126DE9D12D983BB4 /* Pods-NihonRyokou-NihonRyokouUITests.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -516,6 +666,7 @@
 		};
 		C7CFF8D82EDC8D76003F1929 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5982EAD4B1DED873CD853D79 /* Pods-NihonRyokou-NihonRyokouUITests.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;

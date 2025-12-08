@@ -12,6 +12,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
 
 
+    private let tabBarDelegate = SlidingTabBarDelegate()
+
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         
@@ -38,6 +40,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         tabBarController.viewControllers = [inputNav, itineraryNav, settingsNav]
         tabBarController.tabBar.tintColor = Theme.accentColor
         tabBarController.tabBar.backgroundColor = .white
+        tabBarController.delegate = tabBarDelegate
         
         window?.rootViewController = tabBarController
     }

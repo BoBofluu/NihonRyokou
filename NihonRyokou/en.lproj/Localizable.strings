@@ -45,3 +45,10 @@
 "alert_price_too_high" = "Price is too high (Max 9,999,999,999)";
 "detail_title" = "Details";
 "delete_photo" = "Delete Photo";
+
+"all_items" = "All Items";
+"total_label" = "Total";
+"delete_all_confirm_message" = "Delete all items for this date?";
+"no_items_message" = "No items yet. Tap '+' to add!";
+"select_month_title" = "Select Month";
+"show_all_dates" = "Show All Dates";

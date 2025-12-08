@@ -45,3 +45,10 @@
 "alert_price_too_high" = "金額が大きすぎます (最大 9,999,999,999)";
 "detail_title" = "詳細";
 "delete_photo" = "写真を削除";
+
+"all_items" = "すべての項目";
+"total_label" = "合計";
+"delete_all_confirm_message" = "この日のすべての項目を削除しますか？";
+"no_items_message" = "まだ項目がありません。'+' をタップして追加！";
+"select_month_title" = "月を選択";
+"show_all_dates" = "すべての日付を表示";

@@ -1,171 +1,140 @@
 import UIKit
 import PhotosUI
+import Then
+import SnapKit
 
 class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIPickerViewDelegate, UIPickerViewDataSource, UITextFieldDelegate {
     
     var onSave: (() -> Void)?
     private var selectedImageData: Data?
     
-    
-    
     private let hours = Array(0...24)
     private let minutes = Array(0...59)
     private var selectedHour = 0
     private var selectedMinute = 0
     
-    // MARK: - UI Components
+    // MARK: - UI Components (UI 元件)
     
-    private let containerView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .white
-        view.layer.cornerRadius = 24
-        view.layer.shadowColor = Theme.accentColor.cgColor
-        view.layer.shadowOpacity = 0.15
-        view.layer.shadowOffset = CGSize(width: 0, height: 8)
-        view.layer.shadowRadius = 12
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
+    // 主要容器視圖，包含陰影效果
+    private let containerView = UIView().then {
+        $0.backgroundColor = Theme.cardColor
+        $0.layer.cornerRadius = 24
+        $0.layer.shadowColor = Theme.accentColor.cgColor
+        $0.layer.shadowOpacity = 0.15
+        $0.layer.shadowOffset = CGSize(width: 0, height: 8)
+        $0.layer.shadowRadius = 12
+    }
     
-    private let scrollView: UIScrollView = {
-        let sv = UIScrollView()
-        sv.showsVerticalScrollIndicator = false
-        sv.translatesAutoresizingMaskIntoConstraints = false
-        return sv
-    }()
+    private let scrollView = UIScrollView().then {
+        $0.showsVerticalScrollIndicator = false
+    }
     
-    private let formStackView: UIStackView = {
-        let stack = UIStackView()
-        stack.axis = .vertical
-        stack.spacing = 20
-        stack.alignment = .fill
-        stack.distribution = .fill
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        return stack
-    }()
+    private let formStackView = UIStackView().then {
+        $0.axis = .vertical
+        $0.spacing = 20
+        $0.alignment = .fill
+        $0.distribution = .fill
+    }
     
-    private let segmentedControl: UISegmentedControl = {
-        let items = [
-            "transport".localized,
-            "hotel".localized,
-            "restaurant".localized,
-            "activity".localized
-        ]
-        let sc = UISegmentedControl(items: items)
-        sc.selectedSegmentIndex = 0
-        sc.heightAnchor.constraint(equalToConstant: 40).isActive = true
-        return sc
-    }()
+    private let segmentedControl = UISegmentedControl(items: [
+        "transport".localized,
+        "hotel".localized,
+        "restaurant".localized,
+        "activity".localized
+    ]).then {
+        $0.selectedSegmentIndex = 0
+    }
     
     // MARK: - Date Picker
-    private let dateInputWrapper: UIView = {
-        let view = UIView()
-        view.backgroundColor = UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1.0)
-        view.layer.cornerRadius = 12
-        view.heightAnchor.constraint(equalToConstant: 50).isActive = true
-        return view
-    }()
+    private let dateInputWrapper = UIView().then {
+        $0.backgroundColor = Theme.inputFieldColor
+        $0.layer.cornerRadius = 12
+    }
     
-    private let dateIconView: UIImageView = {
-        let iv = UIImageView(image: UIImage(systemName: "calendar"))
-        iv.tintColor = Theme.textLight
-        iv.contentMode = .scaleAspectFit
-        iv.translatesAutoresizingMaskIntoConstraints = false
-        return iv
-    }()
+    private let dateIconView = UIImageView(image: UIImage(systemName: "calendar")).then {
+        $0.tintColor = Theme.textLight
+        $0.contentMode = .scaleAspectFit
+    }
     
-    private let datePicker: UIDatePicker = {
-        let dp = UIDatePicker()
-        dp.datePickerMode = .dateAndTime
-        dp.preferredDatePickerStyle = .compact
-        dp.tintColor = Theme.accentColor
-        dp.locale = Locale.current
-        dp.translatesAutoresizingMaskIntoConstraints = false
-        dp.contentHorizontalAlignment = .leading
-        return dp
-    }()
+    private let datePicker = UIDatePicker().then {
+        $0.datePickerMode = .dateAndTime
+        $0.preferredDatePickerStyle = .compact
+        $0.tintColor = Theme.accentColor
+        $0.locale = Locale.current
+        $0.contentHorizontalAlignment = .leading
+    }
     
     // MARK: - Duration Picker
-    private lazy var durationPicker: UIPickerView = {
-        let picker = UIPickerView()
-        picker.delegate = self
-        picker.dataSource = self
-        return picker
-    }()
+    private lazy var durationPicker = UIPickerView().then {
+        $0.delegate = self
+        $0.dataSource = self
+    }
     
     // MARK: - Photo Area
-    private let photoContainer: UIView = {
-        let view = UIView()
-        view.backgroundColor = .clear
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.clipsToBounds = true
-        return view
-    }()
+    private let photoContainer = UIView().then {
+        $0.backgroundColor = .clear
+        $0.clipsToBounds = true
+    }
     
-    private lazy var photoButton: UIButton = {
-        let btn = UIButton(type: .system)
+    private lazy var photoButton = UIButton(type: .system).then {
         var config = UIButton.Configuration.gray()
         config.image = UIImage(systemName: "camera.fill")
         config.title = "photo_button".localized
         config.baseForegroundColor = Theme.textDark
-        config.background.backgroundColor = UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1.0)
+        config.background.backgroundColor = Theme.inputFieldColor
         config.cornerStyle = .medium
-        btn.configuration = config
-        btn.translatesAutoresizingMaskIntoConstraints = false
-        btn.addTarget(self, action: #selector(didTapPhotoButton), for: .touchUpInside)
-        return btn
-    }()
+        $0.configuration = config
+        $0.addTarget(self, action: #selector(didTapPhotoButton), for: .touchUpInside)
+    }
     
-    private lazy var photoPreview: UIImageView = {
-        let iv = UIImageView()
-        iv.contentMode = .scaleAspectFill
-        iv.clipsToBounds = true
-        iv.layer.cornerRadius = 8
-        iv.backgroundColor = .secondarySystemBackground
-        iv.translatesAutoresizingMaskIntoConstraints = false
-        iv.isHidden = true
-        iv.isUserInteractionEnabled = true
+    private lazy var photoPreview = UIImageView().then {
+        $0.contentMode = .scaleAspectFill
+        $0.clipsToBounds = true
+        $0.layer.cornerRadius = 8
+        $0.backgroundColor = Theme.inputFieldColor
+        $0.isHidden = true
+        $0.isUserInteractionEnabled = true
         let tap = UITapGestureRecognizer(target: self, action: #selector(didTapPreviewImage))
-        iv.addGestureRecognizer(tap)
-        return iv
-    }()
+        $0.addGestureRecognizer(tap)
+    }
     
-    private lazy var photoDeleteButton: UIButton = {
-        let btn = UIButton(type: .system)
-        btn.setTitle("delete_photo".localized, for: .normal)
-        btn.setTitleColor(.systemRed, for: .normal)
-        btn.titleLabel?.font = Theme.font(size: 14, weight: .medium)
-        btn.backgroundColor = .clear
-        btn.translatesAutoresizingMaskIntoConstraints = false
-        btn.isHidden = true
-        btn.addTarget(self, action: #selector(didTapDeletePhoto), for: .touchUpInside)
-        return btn
-    }()
+    private lazy var photoDeleteButton = UIButton(type: .system).then {
+        $0.setTitle("delete_photo".localized, for: .normal)
+        $0.setTitleColor(.systemRed, for: .normal)
+        $0.titleLabel?.font = Theme.font(size: 14, weight: .medium)
+        $0.backgroundColor = .clear
+        $0.isHidden = true
+        $0.addTarget(self, action: #selector(didTapDeletePhoto), for: .touchUpInside)
+    }
     
-    // MARK: - Input Fields Helper
+    // MARK: - Input Fields Helper (輸入欄位輔助方法)
+    
+    // 建立帶有圖示的可愛風格輸入框
     private func createCuteTextField(placeholder: String, keyboardType: UIKeyboardType = .default, iconName: String? = nil, hasHeightConstraint: Bool = true) -> UITextField {
-        let tf = UITextField()
-        tf.placeholder = placeholder
-        tf.font = Theme.font(size: 16, weight: .medium)
-        tf.textColor = Theme.textDark
-        tf.borderStyle = .none
-        tf.backgroundColor = UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1.0)
-        tf.layer.cornerRadius = 12
-        tf.keyboardType = keyboardType
-        tf.autocapitalizationType = .none
-        tf.translatesAutoresizingMaskIntoConstraints = false
+        let tf = UITextField().then {
+            $0.placeholder = placeholder
+            $0.font = Theme.font(size: 16, weight: .medium)
+            $0.textColor = Theme.textDark
+            $0.borderStyle = .none
+            $0.backgroundColor = Theme.inputFieldColor
+            $0.layer.cornerRadius = 12
+            $0.keyboardType = keyboardType
+            $0.autocapitalizationType = .none
+        }
         
         if hasHeightConstraint {
-            // 一般欄位固定 50 高
-            tf.heightAnchor.constraint(equalToConstant: 50).isActive = true
+            tf.snp.makeConstraints { make in
+                make.height.equalTo(50).priority(999)
+            }
         }
         
         let leftPaddingView = UIView(frame: CGRect(x: 0, y: 0, width: 44, height: 50))
         if let iconName = iconName {
-            let iconImageView = UIImageView(image: UIImage(systemName: iconName))
-            iconImageView.tintColor = Theme.textLight
-            iconImageView.contentMode = .scaleAspectFit
-            iconImageView.frame = CGRect(x: 12, y: 15, width: 20, height: 20)
+            let iconImageView = UIImageView(image: UIImage(systemName: iconName)).then {
+                $0.tintColor = Theme.textLight
+                $0.contentMode = .scaleAspectFit
+                $0.frame = CGRect(x: 12, y: 15, width: 20, height: 20)
+            }
             leftPaddingView.addSubview(iconImageView)
         } else {
             leftPaddingView.frame = CGRect(x: 0, y: 0, width: 16, height: 50)
@@ -184,21 +153,18 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
     private lazy var priceField = createCuteTextField(placeholder: "price_placeholder".localized, keyboardType: .numberPad, iconName: "yensign.circle")
     private lazy var urlField = createCuteTextField(placeholder: "url_placeholder".localized, iconName: "link")
     
-    private let saveButton: UIButton = {
-        let btn = UIButton(type: .system)
-        btn.setTitle("add_button_title".localized, for: .normal)
-        btn.backgroundColor = Theme.accentColor
-        btn.setTitleColor(.white, for: .normal)
-        btn.titleLabel?.font = Theme.font(size: 18, weight: .bold)
-        btn.layer.cornerRadius = 28
-        btn.layer.shadowColor = Theme.accentColor.cgColor
-        btn.layer.shadowOpacity = 0.4
-        btn.layer.shadowOffset = CGSize(width: 0, height: 4)
-        btn.layer.shadowRadius = 8
-        btn.translatesAutoresizingMaskIntoConstraints = false
-        btn.heightAnchor.constraint(equalToConstant: 56).isActive = true
-        return btn
-    }()
+    private lazy var saveButton = UIButton(type: .system).then {
+        $0.setTitle("add_button_title".localized, for: .normal)
+        $0.backgroundColor = Theme.accentColor
+        $0.setTitleColor(.white, for: .normal)
+        $0.titleLabel?.font = Theme.font(size: 18, weight: .bold)
+        $0.layer.cornerRadius = 28
+        $0.layer.shadowColor = Theme.accentColor.cgColor
+        $0.layer.shadowOpacity = 0.4
+        $0.layer.shadowOffset = CGSize(width: 0, height: 4)
+        $0.layer.shadowRadius = 8
+        $0.addTarget(self, action: #selector(handleSave), for: .touchUpInside)
+    }
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -207,11 +173,11 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         title = "add_item_title".localized
         
         setupUI()
-        setupActions()
         setupKeyboardToolbar()
         durationField.inputView = durationPicker
         durationField.delegate = self
         durationField.tintColor = .clear
+        segmentedControl.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
         segmentChanged()
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
@@ -223,19 +189,15 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
     }
     
     private func setupKeyboardToolbar() {
-        let toolbar = UIToolbar()
-        toolbar.sizeToFit()
+        let toolbar = UIToolbar().then {
+            $0.sizeToFit()
+        }
         let doneBtn = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(dismissKeyboard))
         let flexSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         toolbar.setItems([flexSpace, doneBtn], animated: true)
         
         priceField.inputAccessoryView = toolbar
         durationField.inputAccessoryView = toolbar
-    }
-    
-    private func setupActions() {
-        saveButton.addTarget(self, action: #selector(handleSave), for: .touchUpInside)
-        segmentedControl.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
     }
     
     // MARK: - Layout
@@ -247,75 +209,87 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         // 1. Date Picker
         dateInputWrapper.addSubview(dateIconView)
         dateInputWrapper.addSubview(datePicker)
-        NSLayoutConstraint.activate([
-            dateIconView.leadingAnchor.constraint(equalTo: dateInputWrapper.leadingAnchor, constant: 12),
-            dateIconView.centerYAnchor.constraint(equalTo: dateInputWrapper.centerYAnchor),
-            dateIconView.widthAnchor.constraint(equalToConstant: 20),
-            dateIconView.heightAnchor.constraint(equalToConstant: 20),
-            datePicker.leadingAnchor.constraint(equalTo: dateIconView.trailingAnchor, constant: 12),
-            datePicker.centerYAnchor.constraint(equalTo: dateInputWrapper.centerYAnchor)
-        ])
+        
+        dateIconView.snp.makeConstraints { make in
+            make.leading.equalToSuperview().offset(12)
+            make.centerY.equalToSuperview()
+            make.size.equalTo(20)
+        }
+        
+        datePicker.snp.makeConstraints { make in
+            make.leading.equalTo(dateIconView.snp.trailing).offset(12)
+            make.centerY.equalToSuperview()
+        }
+        
+        dateInputWrapper.snp.makeConstraints { make in
+            make.height.equalTo(50)
+        }
         
         // 2. Photo Container
         photoContainer.addSubview(photoButton)
         photoContainer.addSubview(photoPreview)
         photoContainer.addSubview(photoDeleteButton)
-        NSLayoutConstraint.activate([
-            photoButton.leadingAnchor.constraint(equalTo: photoContainer.leadingAnchor),
-            photoButton.centerYAnchor.constraint(equalTo: photoContainer.centerYAnchor),
-            photoButton.widthAnchor.constraint(equalToConstant: 120),
-            photoButton.heightAnchor.constraint(equalToConstant: 50),
-            
-            photoPreview.leadingAnchor.constraint(equalTo: photoButton.trailingAnchor, constant: 16),
-            photoPreview.centerYAnchor.constraint(equalTo: photoContainer.centerYAnchor),
-            photoPreview.widthAnchor.constraint(equalToConstant: 50),
-            photoPreview.heightAnchor.constraint(equalToConstant: 50),
-            
-            photoDeleteButton.leadingAnchor.constraint(equalTo: photoPreview.trailingAnchor, constant: 12),
-            photoDeleteButton.centerYAnchor.constraint(equalTo: photoContainer.centerYAnchor),
-            photoDeleteButton.heightAnchor.constraint(equalToConstant: 40)
-        ])
+        
+        photoButton.snp.makeConstraints { make in
+            make.leading.equalToSuperview()
+            make.top.equalToSuperview().offset(5)
+            make.bottom.equalToSuperview().offset(-5)
+            make.width.equalTo(120)
+            make.height.equalTo(50).priority(999)
+        }
+        
+        photoPreview.snp.makeConstraints { make in
+            make.leading.equalTo(photoButton.snp.trailing).offset(16)
+            make.centerY.equalToSuperview()
+            make.size.equalTo(50)
+        }
+        
+        photoDeleteButton.snp.makeConstraints { make in
+            make.leading.equalTo(photoPreview.snp.trailing).offset(12)
+            make.centerY.equalToSuperview()
+            make.height.equalTo(40)
+        }
         
         // 3. Add to StackView
-        let items = [
-            segmentedControl,
-            dateInputWrapper,
-            titleField,
-            durationField,
-            locationField,
-            memoField,
-            priceField,
-            urlField,
-            photoContainer,
-            saveButton
-        ]
-        items.forEach { formStackView.addArrangedSubview($0) }
+        [segmentedControl, dateInputWrapper, titleField, durationField, locationField, memoField, priceField, urlField, photoContainer, saveButton].forEach {
+            formStackView.addArrangedSubview($0)
+        }
         
         formStackView.setCustomSpacing(30, after: photoContainer)
         
-        photoContainer.heightAnchor.constraint(equalToConstant: 60).isActive = true
+        segmentedControl.snp.makeConstraints { make in
+            make.height.equalTo(40)
+        }
+        
+        saveButton.snp.makeConstraints { make in
+            make.height.equalTo(56)
+        }
         
         // 6. Main Constraints
-        NSLayoutConstraint.activate([
-            containerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
-            containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            containerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            containerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10),
-            
-            scrollView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 20),
-            scrollView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -20),
-            
-            formStackView.topAnchor.constraint(equalTo: scrollView.topAnchor),
-            formStackView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 20),
-            formStackView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -20),
-            formStackView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
-            formStackView.widthAnchor.constraint(equalTo: scrollView.widthAnchor, constant: -40)
-        ])
+        containerView.snp.makeConstraints { make in
+            make.top.equalTo(view.safeAreaLayoutGuide).offset(10)
+            make.leading.equalToSuperview().offset(20)
+            make.trailing.equalToSuperview().offset(-20)
+            make.bottom.equalTo(view.safeAreaLayoutGuide).offset(-10)
+        }
+        
+        scrollView.snp.makeConstraints { make in
+            make.top.equalToSuperview().offset(20)
+            make.leading.trailing.equalToSuperview()
+            make.bottom.equalToSuperview().offset(-20)
+        }
+        
+        formStackView.snp.makeConstraints { make in
+            make.top.bottom.equalToSuperview()
+            make.leading.equalToSuperview().offset(20)
+            make.trailing.equalToSuperview().offset(-20)
+            make.width.equalToSuperview().offset(-40)
+        }
     }
     
-    // MARK: - Logic
+    // MARK: - Logic (邏輯處理)
+    
+    // 當類別選擇改變時，更新 UI 狀態
     @objc private func segmentChanged() {
         let index = segmentedControl.selectedSegmentIndex
         
@@ -326,6 +300,7 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         case 3: titleField.placeholder = "activity".localized
         default: titleField.placeholder = "title_placeholder_default".localized
         }
+        
         
         if index == 0 {
             durationField.isHidden = false
@@ -354,6 +329,7 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         else { durationField.text = "\(selectedHour)\("hour".localized) \(selectedMinute)\("minute".localized)" }
     }
     
+    // 點擊照片按鈕，開啟照片選擇器
     @objc private func didTapPhotoButton() {
         var config = PHPickerConfiguration()
         config.selectionLimit = 1
@@ -390,6 +366,7 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         }
     }
     
+    // 調整圖片大小以節省記憶體
     private func resizeImage(image: UIImage, targetWidth: CGFloat) -> UIImage {
         let size = image.size
         let widthRatio  = targetWidth  / size.width
@@ -407,26 +384,27 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         let previewVC = UIViewController()
         previewVC.view.backgroundColor = .black
         previewVC.modalPresentationStyle = .fullScreen
-        let imageView = UIImageView(image: image)
-        imageView.contentMode = .scaleAspectFit
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        let closeBtn = UIButton(type: .close)
-        closeBtn.tintColor = .white
-        closeBtn.translatesAutoresizingMaskIntoConstraints = false
-        closeBtn.addAction(UIAction { _ in previewVC.dismiss(animated: true) }, for: .touchUpInside)
+        let imageView = UIImageView(image: image).then {
+            $0.contentMode = .scaleAspectFit
+        }
+        let closeBtn = UIButton(type: .close).then {
+            $0.tintColor = .white
+            $0.addAction(UIAction { _ in previewVC.dismiss(animated: true) }, for: .touchUpInside)
+        }
         previewVC.view.addSubview(imageView)
         previewVC.view.addSubview(closeBtn)
-        NSLayoutConstraint.activate([
-            imageView.topAnchor.constraint(equalTo: previewVC.view.safeAreaLayoutGuide.topAnchor),
-            imageView.bottomAnchor.constraint(equalTo: previewVC.view.bottomAnchor),
-            imageView.leadingAnchor.constraint(equalTo: previewVC.view.leadingAnchor),
-            imageView.trailingAnchor.constraint(equalTo: previewVC.view.trailingAnchor),
-            closeBtn.topAnchor.constraint(equalTo: previewVC.view.safeAreaLayoutGuide.topAnchor, constant: 16),
-            closeBtn.trailingAnchor.constraint(equalTo: previewVC.view.trailingAnchor, constant: -16)
-        ])
+        
+        imageView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        closeBtn.snp.makeConstraints { make in
+            make.top.equalTo(previewVC.view.safeAreaLayoutGuide).offset(16)
+            make.trailing.equalToSuperview().offset(-16)
+        }
         present(previewVC, animated: true)
     }
     
+    // 處理儲存按鈕點擊事件
     @objc private func handleSave() {
         guard let title = titleField.text, !title.isEmpty else {
             showAlert(message: "alert_title_empty".localized)

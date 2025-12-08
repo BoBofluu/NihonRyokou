@@ -1,13 +1,12 @@
 import UIKit
+import Then
+import SnapKit
 
 class SettingsViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
-    private let tableView: UITableView = {
-        let tv = UITableView(frame: .zero, style: .insetGrouped)
-        tv.backgroundColor = Theme.primaryColor
-        tv.translatesAutoresizingMaskIntoConstraints = false
-        return tv
-    }()
+    private let tableView = UITableView(frame: .zero, style: .insetGrouped).then {
+        $0.backgroundColor = Theme.primaryColor
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -26,12 +25,9 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
         tableView.dataSource = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
         
-        NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-        ])
+        tableView.snp.makeConstraints { make in
+            make.edges.equalTo(view.safeAreaLayoutGuide)
+        }
     }
     
     private func updateTexts() {
@@ -59,7 +55,7 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
         
         cell.textLabel?.text = language.displayName
         cell.textLabel?.font = Theme.font(size: 16, weight: .medium)
-        cell.backgroundColor = .white
+        cell.backgroundColor = Theme.cardColor
         
         if language == LanguageManager.shared.currentLanguage {
             cell.accessoryType = .checkmark

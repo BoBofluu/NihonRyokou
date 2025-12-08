@@ -44,6 +44,10 @@ class LanguageManager {
         
         return NSLocalizedString(key, tableName: nil, bundle: bundle, value: "", comment: "")
     }
+    
+    var currentLocale: Locale {
+        return Locale(identifier: currentLanguage.rawValue)
+    }
 }
 
 extension String {

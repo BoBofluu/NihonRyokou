@@ -45,3 +45,10 @@
 "alert_price_too_high" = "금액이 너무 큽니다 (최대 9,999,999,999)";
 "detail_title" = "상세 정보";
 "delete_photo" = "사진 삭제";
+
+"all_items" = "모든 항목";
+"total_label" = "합계";
+"delete_all_confirm_message" = "이 날짜의 모든 항목을 삭제하시겠습니까?";
+"no_items_message" = "항목이 없습니다. '+'를 눌러 추가하세요!";
+"select_month_title" = "월 선택";
+"show_all_dates" = "모든 날짜 표시";

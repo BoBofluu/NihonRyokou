@@ -45,3 +45,10 @@
 "alert_price_too_high" = "金額過大 (上限 9,999,999,999)";
 "detail_title" = "詳細資訊";
 "delete_photo" = "刪除照片";
+
+"all_items" = "所有項目";
+"total_label" = "總計";
+"delete_all_confirm_message" = "確定要刪除此日期的所有項目嗎？";
+"no_items_message" = "尚無項目，點擊 '+' 新增！";
+"select_month_title" = "選擇月份";
+"show_all_dates" = "顯示所有日期";
