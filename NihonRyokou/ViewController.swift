@@ -69,10 +69,16 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         $0.isHidden = true
     }
     
+    private let backgroundImageView = UIImageView().then {
+        $0.contentMode = .scaleAspectFill
+        $0.clipsToBounds = true
+    }
+    
+
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = Theme.primaryColor
         
         navigationController?.setNavigationBarHidden(true, animated: false)
         
@@ -80,6 +86,27 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         loadData()
         
         NotificationCenter.default.addObserver(self, selector: #selector(loadData), name: NSNotification.Name("RefreshData"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateTheme), name: NSNotification.Name("ThemeChanged"), object: nil)
+        
+        updateTheme() // Initial theme application
+    }
+    
+    @objc private func updateTheme() {
+        view.backgroundColor = Theme.primaryColor
+        totalLabel.textColor = Theme.textDark
+        monthPickerButton.tintColor = Theme.accentColor
+        
+        if let bgImage = Theme.backgroundImage {
+            backgroundImageView.image = bgImage
+            backgroundImageView.isHidden = false
+            tableView.backgroundColor = .clear
+        } else {
+            backgroundImageView.isHidden = true
+            tableView.backgroundColor = .clear
+        }
+        
+        tableView.reloadData()
+        calendarStrip.reloadData()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -89,11 +116,20 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     // MARK: - Layout
     private func setupUI() {
+        view.addSubview(backgroundImageView)
+        view.addSubview(backgroundImageView)
+        view.addSubview(calendarStrip)
         view.addSubview(calendarStrip)
         view.addSubview(monthPickerButton)
         view.addSubview(totalLabel)
         view.addSubview(tableView)
         view.addSubview(emptyStateLabel)
+        
+        backgroundImageView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        
+
         
         calendarStrip.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide).offset(10)
@@ -428,8 +464,15 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         
         CoreDataManager.shared.deleteItem(item)
         
+        // Remove from global data source
+        if let index = allItems.firstIndex(of: item) {
+            allItems.remove(at: index)
+        }
+        
         // Remove from local data
         sections[indexPath.section].items.remove(at: indexPath.row)
+        
+        // Update TableView
         if sections[indexPath.section].items.isEmpty {
             sections.remove(at: indexPath.section)
             tableView.deleteSections(IndexSet(integer: indexPath.section), with: .fade)
@@ -441,9 +484,48 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         // Update Global Total
         updateTotalLabel()
         
-        // Refresh calendar if needed (e.g. if a date is completely removed)
-        // loadData() might be too heavy, but it ensures consistency
-        // For now, let's keep it simple.
+        // Update Calendar Strip (Remove date if no items left)
+        let calendar = Calendar.current
+        let datesToDisplay: [ItineraryItem]
+        if let month = currentMonth {
+            datesToDisplay = allItems.filter { filterItem in
+                 guard let date = filterItem.timestamp else { return false }
+                 return calendar.isDate(date, equalTo: month, toGranularity: .month)
+            }
+        } else {
+            datesToDisplay = allItems
+        }
+        
+        let uniqueDates = Set(datesToDisplay.compactMap { filterItem -> Date? in
+            guard let date = filterItem.timestamp else { return nil }
+            return calendar.startOfDay(for: date)
+        })
+        let sortedDates = uniqueDates.sorted()
+        calendarStrip.setDates(sortedDates)
+        
+        // If current selected date is now empty, clear selection or switch to all?
+        // If we are in single date mode and deleting the last item:
+        if let currentSelected = selectedDate, !sortedDates.contains(currentSelected) {
+            // The currently selected date is gone. Switch to "All" (nil)
+            // But we don't want to reload tableview again because we just did the animation.
+            // Just update state:
+            selectedDate = nil
+            // Updating calendar strip selection to nil:
+            calendarStrip.selectDate(nil)
+            
+            // However, if we were viewing a single section, the tableview is now empty (if it was the only section).
+            // If we switch to nil (All), we should probably show all items remaining?
+            // User experience: If I delete the last item of "Day X", I probably expect to see the overview or empty state?
+            // Given the tableview logic above, 'sections' was modified.
+            // If selectedDate WAS set, 'sections' had only 1 section. Now it has 0.
+            // So the screen is empty.
+            // If the user wants to see other days, they should see "All"?
+            // Let's trigger a reload to show "All" if the specific day is gone.
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                 self.filterItems(for: nil)
+            }
+        }
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {

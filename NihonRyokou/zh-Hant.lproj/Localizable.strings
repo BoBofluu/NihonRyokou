@@ -3,6 +3,7 @@
 "transport" = "交通";
 "hotel" = "住宿";
 "restaurant" = "餐飲";
+
 "activity" = "行程";
 
 "title_placeholder_default" = "標題（如：東京站）";
@@ -10,14 +11,18 @@
 "title_placeholder_hotel" = "飯店名稱";
 "title_placeholder_restaurant" = "餐廳名稱";
 
-"location_placeholder" = "地點";
-"price_placeholder" = "價格 (日圓)";
+"location_placeholder" = "地點（選填）";
+"price_placeholder" = "價格 (日圓)（選填）";
 "url_placeholder" = "連結（選填）";
 "memo_placeholder" = "備註（選填）";
-"travel_time_placeholder" = "移動時間";
+"travel_time_placeholder" = "移動時間（選填）";
 
 "add_button_title" = "加入行程";
-"delete_action" = "刪除";
+"delete_action_reset" = "重置";
+"overwrite_custom_theme" = "將此配色覆蓋至自訂主題";
+"overwrite_custom_theme_alert_title" = "是否覆蓋自訂主題？";
+"overwrite_custom_theme_alert_message" = "這將使用目前選擇的主題配色，更新您的自訂主題設定。";
+"action_overwrite" = "覆蓋";
 "settings_title" = "設定";
 "language_setting" = "語言設定";
 "itinerary_tab" = "行程";
@@ -52,3 +57,28 @@
 "no_items_message" = "尚無項目，點擊 '+' 新增！";
 "select_month_title" = "選擇月份";
 "show_all_dates" = "顯示所有日期";
+"language_section_title" = "語言";
+"custom_icons_title" = "自訂圖示";
+"select_icon_title" = "選擇圖示";
+"custom_colors_title" = "自訂顏色";
+"custom_colors_title" = "自訂顏色";
+"appearance_section_title" = "外觀";
+"primary_color_option" = "背景顏色";
+"accent_color_option" = "主題顏色";
+"transport_card_color_option" = "交通卡顏色";
+"amount_color_option" = "金額顏色";
+"theme_presets_title" = "主題預設";
+"background_image" = "背景圖片";
+"select_background_image" = "選擇背景圖片";
+"change_background_image" = "更換背景圖片";
+"delete_icon" = "重置圖示";
+"reset_icon" = "恢復預設值";
+
+
+
+"theme_custom" = "自訂";
+"theme_sakura" = "櫻花";
+"theme_ocean" = "海洋";
+"theme_matcha" = "抹茶";
+"theme_sunset" = "夕陽";
+"select_icon_button" = "選擇圖示";

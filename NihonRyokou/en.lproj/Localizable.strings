@@ -2,7 +2,8 @@
 "add_item_title" = "Add Item";
 "transport" = "Transport";
 "hotel" = "Hotel";
-"restaurant" = "Food";
+"restaurant" = "Restaurant";
+
 "activity" = "Activity";
 
 "title_placeholder_default" = "Title (e.g. Tokyo Station)";
@@ -10,14 +11,18 @@
 "title_placeholder_hotel" = "Hotel Name";
 "title_placeholder_restaurant" = "Restaurant Name";
 
-"location_placeholder" = "Location";
-"price_placeholder" = "Price (JPY)";
+"location_placeholder" = "Location (Optional)";
+"price_placeholder" = "Price (JPY) (Optional)";
 "url_placeholder" = "URL (Optional)";
 "memo_placeholder" = "Memo (Optional)";
-"travel_time_placeholder" = "Travel Time";
+"travel_time_placeholder" = "Travel Time (Optional)";
 
 "add_button_title" = "Add to Itinerary";
-"delete_action" = "Delete";
+"delete_action_reset" = "Reset";
+"overwrite_custom_theme" = "Overwrite to Custom Theme";
+"overwrite_custom_theme_alert_title" = "Overwrite Custom Theme?";
+"overwrite_custom_theme_alert_message" = "This will overwrite your current Custom Theme settings with the colors of this preset.";
+"action_overwrite" = "Overwrite";
 "settings_title" = "Settings";
 "language_setting" = "Language";
 "itinerary_tab" = "Itinerary";
@@ -52,3 +57,27 @@
 "no_items_message" = "No items yet. Tap '+' to add!";
 "select_month_title" = "Select Month";
 "show_all_dates" = "Show All Dates";
+"language_section_title" = "Language";
+"custom_icons_title" = "Custom Icons";
+"select_icon_title" = "Select Icon";
+"custom_colors_title" = "Custom Colors";
+"custom_colors_title" = "Custom Colors";
+"appearance_section_title" = "Appearance";
+"primary_color_option" = "Background Color";
+"accent_color_option" = "Theme Color";
+"amount_color_option" = "Amount Color";
+"theme_presets_title" = "Theme Presets";
+"background_image" = "Background Image";
+"select_background_image" = "Select Background Image";
+"change_background_image" = "Change Background Image";
+"delete_icon" = "Reset Icon";
+"reset_icon" = "Reset to Default";
+
+
+
+"theme_custom" = "Custom";
+"theme_sakura" = "Sakura";
+"theme_ocean" = "Ocean";
+"theme_matcha" = "Matcha";
+"theme_sunset" = "Sunset";
+"select_icon_button" = "Select Icon";

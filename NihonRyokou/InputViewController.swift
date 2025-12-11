@@ -7,6 +7,7 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
     
     var onSave: (() -> Void)?
     private var selectedImageData: Data?
+    private var selectedIconName: String?
     
     private let hours = Array(0...24)
     private let minutes = Array(0...59)
@@ -14,6 +15,13 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
     private var selectedMinute = 0
     
     // MARK: - UI Components (UI 元件)
+    
+    private let backgroundImageView = UIImageView().then {
+        $0.contentMode = .scaleAspectFill
+        $0.clipsToBounds = true
+    }
+    
+
     
     // 主要容器視圖，包含陰影效果
     private let containerView = UIView().then {
@@ -45,18 +53,38 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         $0.selectedSegmentIndex = 0
     }
     
-    // MARK: - Date Picker
+    // MARK: - Icon Selection (New)
+    private let iconSelectionContainer = UIView().then {
+        $0.backgroundColor = Theme.inputFieldColor
+        $0.layer.cornerRadius = 12
+        $0.isHidden = true
+    }
+    
+    private let iconPreviewView = UIImageView().then {
+        $0.contentMode = .scaleAspectFit
+        $0.tintColor = Theme.accentColor
+        $0.image = UIImage(named: "car-1") // Default to first custom asset
+
+    }
+    
+    private lazy var selectIconButton = UIButton(type: .system).then {
+        var config = UIButton.Configuration.plain()
+        config.baseForegroundColor = Theme.textDark
+        config.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 0)
+        $0.configuration = config
+        
+        $0.contentHorizontalAlignment = .leading
+        $0.addTarget(self, action: #selector(didTapSelectIcon), for: .touchUpInside)
+    }
+    
+    // MARK: - Date Picker Components
+    
     private let dateInputWrapper = UIView().then {
         $0.backgroundColor = Theme.inputFieldColor
         $0.layer.cornerRadius = 12
     }
     
-    private let dateIconView = UIImageView(image: UIImage(systemName: "calendar")).then {
-        $0.tintColor = Theme.textLight
-        $0.contentMode = .scaleAspectFit
-    }
-    
-    private let datePicker = UIDatePicker().then {
+    private lazy var datePicker = UIDatePicker().then {
         $0.datePickerMode = .dateAndTime
         $0.preferredDatePickerStyle = .compact
         $0.tintColor = Theme.accentColor
@@ -64,6 +92,12 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         $0.contentHorizontalAlignment = .leading
     }
     
+    // MARK: - Date Reset Button
+    private lazy var resetDateButton = UIButton(type: .system).then {
+        $0.setImage(UIImage(named: "reset-1")?.withRenderingMode(.alwaysOriginal), for: .normal)
+        $0.addTarget(self, action: #selector(didTapResetDate), for: .touchUpInside)
+    }
+
     // MARK: - Duration Picker
     private lazy var durationPicker = UIPickerView().then {
         $0.delegate = self
@@ -75,6 +109,9 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         $0.backgroundColor = .clear
         $0.clipsToBounds = true
     }
+    
+
+
     
     private lazy var photoButton = UIButton(type: .system).then {
         var config = UIButton.Configuration.gray()
@@ -112,7 +149,11 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
     // 建立帶有圖示的可愛風格輸入框
     private func createCuteTextField(placeholder: String, keyboardType: UIKeyboardType = .default, iconName: String? = nil, hasHeightConstraint: Bool = true) -> UITextField {
         let tf = UITextField().then {
-            $0.placeholder = placeholder
+
+            $0.attributedPlaceholder = NSAttributedString(
+                string: placeholder,
+                attributes: [.foregroundColor: Theme.placeholderColor]
+            )
             $0.font = Theme.font(size: 16, weight: .medium)
             $0.textColor = Theme.textDark
             $0.borderStyle = .none
@@ -173,22 +214,57 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         title = "add_item_title".localized
         
         setupUI()
-        setupKeyboardToolbar()
-        durationField.inputView = durationPicker
-        durationField.delegate = self
-        durationField.tintColor = .clear
-        segmentedControl.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
-        segmentChanged()
+        setupActions() // Renamed from setupKeyboardToolbar and added other actions
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         view.addGestureRecognizer(tap)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(updateTheme), name: NSNotification.Name("ThemeChanged"), object: nil)
+        
+        updateTheme() // Call updateTheme initially
+    }
+    
+    @objc private func updateTheme() {
+        view.backgroundColor = Theme.primaryColor
+        
+        if let bgImage = Theme.backgroundImage {
+            backgroundImageView.image = bgImage
+            backgroundImageView.isHidden = false
+            containerView.backgroundColor = Theme.cardColor.withAlphaComponent(0.9) // Semi-transparent card
+        } else {
+            backgroundImageView.isHidden = true
+            containerView.backgroundColor = Theme.cardColor
+        }
+        
+        containerView.layer.shadowColor = Theme.accentColor.cgColor
+        
+        saveButton.backgroundColor = Theme.accentColor
+        saveButton.layer.shadowColor = Theme.accentColor.cgColor
+        
+        dateInputWrapper.backgroundColor = Theme.inputFieldColor
+        dateInputWrapper.layer.cornerRadius = 12
+        datePicker.tintColor = Theme.accentColor
+        
+        [titleField, durationField, locationField, memoField, priceField, urlField].forEach {
+            $0.backgroundColor = Theme.inputFieldColor
+            $0.textColor = Theme.textDark
+            if let placeholder = $0.placeholder {
+                $0.attributedPlaceholder = NSAttributedString(
+                    string: placeholder,
+                    attributes: [.foregroundColor: Theme.placeholderColor]
+                )
+            }
+        }
+        
+        segmentChanged() // Refresh segment colors if needed
     }
     
     @objc private func dismissKeyboard() {
         view.endEditing(true)
     }
     
-    private func setupKeyboardToolbar() {
+    private func setupActions() {
+        // Keyboard Toolbar
         let toolbar = UIToolbar().then {
             $0.sizeToFit()
         }
@@ -198,31 +274,43 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         
         priceField.inputAccessoryView = toolbar
         durationField.inputAccessoryView = toolbar
+        
+        // Duration Picker
+        durationField.inputView = durationPicker
+        durationField.delegate = self
+        durationField.tintColor = .clear
+        
+        // Segmented Control
+        segmentedControl.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
+        segmentChanged()
     }
     
     // MARK: - Layout
     private func setupUI() {
+        view.addSubview(backgroundImageView)
         view.addSubview(containerView)
+        
+        backgroundImageView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        
         containerView.addSubview(scrollView)
         scrollView.addSubview(formStackView)
         
-        // 1. Date Picker
-        dateInputWrapper.addSubview(dateIconView)
+        // 1. Date Picker Box Layout
+        // Add components to the wrapper
         dateInputWrapper.addSubview(datePicker)
-        
-        dateIconView.snp.makeConstraints { make in
-            make.leading.equalToSuperview().offset(12)
-            make.centerY.equalToSuperview()
-            make.size.equalTo(20)
-        }
+        dateInputWrapper.addSubview(resetDateButton)
         
         datePicker.snp.makeConstraints { make in
-            make.leading.equalTo(dateIconView.snp.trailing).offset(12)
+            make.leading.equalToSuperview().offset(12)
             make.centerY.equalToSuperview()
         }
         
-        dateInputWrapper.snp.makeConstraints { make in
-            make.height.equalTo(50)
+        resetDateButton.snp.makeConstraints { make in
+            make.trailing.equalToSuperview().offset(-12)
+            make.centerY.equalToSuperview()
+            make.width.height.equalTo(30)
         }
         
         // 2. Photo Container
@@ -250,8 +338,70 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
             make.height.equalTo(40)
         }
         
+        // Icon Selection Layout
+        iconSelectionContainer.addSubview(iconPreviewView)
+        iconSelectionContainer.addSubview(selectIconButton)
+        
+        iconPreviewView.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+            make.size.equalTo(28)
+        }
+        
+        selectIconButton.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        
+        // Duration Field Constraints
+        durationField.snp.removeConstraints()
+        durationField.snp.makeConstraints { make in
+            make.height.equalTo(50)
+            make.width.equalTo(100)
+        }
+        
+        durationField.leftView = nil
+        durationField.textAlignment = .center
+        
+        // Create Horizontal Stack for Meta Info [Icon, Date]
+        // Header Row: [Icon (Square)] [Date (Flexible)]
+        let headerStack = UIStackView(arrangedSubviews: [iconSelectionContainer, dateInputWrapper]).then {
+            $0.axis = .horizontal
+            $0.spacing = 12
+            $0.alignment = .fill
+            $0.distribution = .fill
+        }
+        
+        // Icon Constraint
+        iconSelectionContainer.snp.makeConstraints { make in
+            make.width.equalTo(50)
+            make.height.equalTo(50)
+        }
+        
+        // Date Wrapper (Flexible)
+        dateInputWrapper.snp.removeConstraints() 
+        dateInputWrapper.snp.makeConstraints { make in
+             make.height.equalTo(50)
+        }
+        
+        // Duration Field (Separate Line)
+        durationField.snp.removeConstraints()
+        durationField.snp.makeConstraints { make in
+            make.height.equalTo(50)
+        }
+        
+        let durationLeftView = UIView(frame: CGRect(x: 0, y: 0, width: 44, height: 50))
+        let durationIcon = UIImageView(image: UIImage(systemName: "clock")).then {
+            $0.tintColor = Theme.textLight
+            $0.contentMode = .scaleAspectFit
+            $0.frame = CGRect(x: 12, y: 15, width: 20, height: 20)
+        }
+        durationLeftView.addSubview(durationIcon)
+        durationField.leftView = durationLeftView
+        durationField.leftViewMode = .always
+        durationField.textAlignment = .left // Restore left alignment
+        
         // 3. Add to StackView
-        [segmentedControl, dateInputWrapper, titleField, durationField, locationField, memoField, priceField, urlField, photoContainer, saveButton].forEach {
+        // Header (Icon+Date), then Title, then Duration (if Transport), then others...
+        [segmentedControl, headerStack, titleField, durationField, locationField, memoField, priceField, urlField, photoContainer, saveButton].forEach {
             formStackView.addArrangedSubview($0)
         }
         
@@ -301,11 +451,43 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         default: titleField.placeholder = "title_placeholder_default".localized
         }
         
+        // Icon Switching Logic with UserDefaults Persistence
+        let iconKey = "InputPreferredIcon_\(index)"
+        
+        if let savedName = UserDefaults.standard.string(forKey: iconKey) {
+            // Restore saved state from UserDefaults
+            selectedIconName = savedName
+            // Load image (Support both custom and assets)
+            if let custom = Theme.getIcon(for: savedName) {
+                iconPreviewView.image = custom
+            } else {
+                iconPreviewView.image = UIImage(named: savedName) ?? UIImage(systemName: savedName)
+            }
+        } else {
+            // No saved state, apply Default for this category
+            let defaultName: String
+            if index == 1 { // Hotel
+                defaultName = "hotel-1"
+            } else { // Transport and others
+                defaultName = "car-1"
+            }
+            
+            selectedIconName = defaultName
+            iconPreviewView.image = UIImage(named: defaultName)
+        }
+        
+        // All segments: Icon on the left, Date on the right (independent style)
+        // Duration is Transport only
+        // Photo is Non-Transport
+        
+        iconSelectionContainer.isHidden = false // Always show icon
         
         if index == 0 {
+            // Transport: Duration visible, Photo hidden
             durationField.isHidden = false
             photoContainer.isHidden = true
         } else {
+            // Other: Duration hidden, Photo visible
             durationField.isHidden = true
             photoContainer.isHidden = false
         }
@@ -379,29 +561,54 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         return newImage ?? image
     }
     
+    @objc private func didTapSelectIcon() {
+        let vc = IconSelectionViewController()
+        if segmentedControl.selectedSegmentIndex == 1 {
+            vc.category = "Hotel"
+        } else {
+            vc.category = "Transport"
+        }
+        vc.onIconSelected = { [weak self] image, name in
+            guard let self = self else { return }
+            self.selectedIconName = name
+            self.iconPreviewView.image = image
+            
+            // Persist to UserDefaults
+            let index = self.segmentedControl.selectedSegmentIndex
+            UserDefaults.standard.set(name, forKey: "InputPreferredIcon_\(index)")
+        }
+        
+        if let nav = navigationController {
+             nav.pushViewController(vc, animated: true)
+        } else {
+            // Fallback if not in nav controller
+            let nav = UINavigationController(rootViewController: vc)
+            present(nav, animated: true)
+        }
+    }
+    
     @objc private func didTapPreviewImage() {
         guard let image = photoPreview.image else { return }
         let previewVC = UIViewController()
         previewVC.view.backgroundColor = .black
-        previewVC.modalPresentationStyle = .fullScreen
+        previewVC.modalPresentationStyle = .automatic // Allow pull-to-dismiss
+        
         let imageView = UIImageView(image: image).then {
             $0.contentMode = .scaleAspectFit
         }
-        let closeBtn = UIButton(type: .close).then {
-            $0.tintColor = .white
-            $0.addAction(UIAction { _ in previewVC.dismiss(animated: true) }, for: .touchUpInside)
-        }
-        previewVC.view.addSubview(imageView)
-        previewVC.view.addSubview(closeBtn)
         
+        previewVC.view.addSubview(imageView)
         imageView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
         }
-        closeBtn.snp.makeConstraints { make in
-            make.top.equalTo(previewVC.view.safeAreaLayoutGuide).offset(16)
-            make.trailing.equalToSuperview().offset(-16)
-        }
+        
         present(previewVC, animated: true)
+    }
+    
+    @objc private func didTapResetDate() {
+        datePicker.setDate(Date(), animated: true)
+        let generator = UISelectionFeedbackGenerator()
+        generator.selectionChanged()
     }
     
     // 處理儲存按鈕點擊事件
@@ -449,7 +656,8 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
             locationURL: urlString,
             memo: memoField.text,
             photoData: (type == "transport") ? nil : selectedImageData,
-            transportDuration: (type == "transport") ? durationField.text : nil
+            transportDuration: (type == "transport") ? durationField.text : nil,
+            iconName: selectedIconName // Save icon for all types
         )
         onSave?()
         resetFields()
@@ -468,15 +676,16 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         priceField.text = ""
         urlField.text = ""
         memoField.text = ""
-        durationField.text = ""
-        selectedImageData = nil
+        
+        // Removed resetting of icon states
+        
         photoPreview.image = nil
         photoPreview.isHidden = true
         photoDeleteButton.isHidden = true
         photoButton.isHidden = false
 
-        selectedHour = 0
-        selectedMinute = 0
+        // selectedHour = 0
+        // selectedMinute = 0
     }
     
     private func showAlert(message: String) {

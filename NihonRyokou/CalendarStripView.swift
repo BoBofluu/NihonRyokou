@@ -32,7 +32,10 @@ class CalendarStripView: UIView, UICollectionViewDelegate, UICollectionViewDataS
     
     required init?(coder: NSCoder) { fatalError() }
     
-    // 更新日期資料並重置選擇
+    func reloadData() {
+        collectionView.reloadData()
+    }
+    
     func setDates(_ newDates: [Date]) {
         self.dates = newDates
         selectedDateIndex = 0
@@ -44,13 +47,37 @@ class CalendarStripView: UIView, UICollectionViewDelegate, UICollectionViewDataS
     }
     
     // 程式化選擇特定日期
-    func selectDate(_ date: Date) {
-        let calendar = Calendar.current
-        if let index = dates.firstIndex(where: { calendar.isDate($0, inSameDayAs: date) }) {
-            let indexPath = IndexPath(item: index + 1, section: 0) // +1 because 0 is "All"
-            collectionView.selectItem(at: indexPath, animated: true, scrollPosition: .centeredHorizontally)
-            collectionView(collectionView, didSelectItemAt: indexPath)
+    func selectDate(_ date: Date?) {
+        let indexPath: IndexPath
+        
+        if let date = date {
+            let calendar = Calendar.current
+            if let index = dates.firstIndex(where: { calendar.isDate($0, inSameDayAs: date) }) {
+                indexPath = IndexPath(item: index + 1, section: 0) // +1 because 0 is "All"
+            } else {
+                return // Date not found
+            }
+        } else {
+            // Select "All"
+            indexPath = IndexPath(item: 0, section: 0)
         }
+        
+        collectionView.selectItem(at: indexPath, animated: true, scrollPosition: .centeredHorizontally)
+        // Manually trigger delegate logic if needed, or just update internal state
+        // collectionView.selectItem doesn't trigger delegate methods automatically.
+        // We usually want to reflect the UI state change.
+        // If we call delegate, it might trigger circular filter logic if not careful.
+        // Here we just want to update UI selection state.
+        
+        let oldIndex = selectedDateIndex
+        selectedDateIndex = indexPath.item
+        
+        var indexPathsToReload = [indexPath]
+        if oldIndex != selectedDateIndex {
+            indexPathsToReload.append(IndexPath(item: oldIndex, section: 0))
+        }
+        collectionView.reloadItems(at: indexPathsToReload)
+        collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
     }
     
     private func setupUI() {

@@ -3,6 +3,7 @@
 "transport" = "交通";
 "hotel" = "宿泊";
 "restaurant" = "食事";
+
 "activity" = "観光";
 
 "title_placeholder_default" = "タイトル（例：東京駅）";
@@ -10,14 +11,18 @@
 "title_placeholder_hotel" = "ホテル名";
 "title_placeholder_restaurant" = "店名";
 
-"location_placeholder" = "場所";
-"price_placeholder" = "金額 (円)";
+"location_placeholder" = "場所（任意）";
+"price_placeholder" = "金額 (円)（任意）";
 "url_placeholder" = "URL (任意)";
 "memo_placeholder" = "メモ（任意）";
-"travel_time_placeholder" = "移動時間";
+"travel_time_placeholder" = "移動時間（任意）";
 
 "add_button_title" = "リストに追加";
-"delete_action" = "削除";
+"delete_action_reset" = "リセット";
+"overwrite_custom_theme" = "現在の設定をカスタムテーマに保存";
+"overwrite_custom_theme_alert_title" = "カスタムテーマを上書きしますか？";
+"overwrite_custom_theme_alert_message" = "現在のプリセットの色設定でカスタムテーマを更新します。";
+"action_overwrite" = "上書き";
 "settings_title" = "設定";
 "language_setting" = "言語設定";
 "itinerary_tab" = "旅程";
@@ -52,3 +57,27 @@
 "no_items_message" = "まだ項目がありません。'+' をタップして追加！";
 "select_month_title" = "月を選択";
 "show_all_dates" = "すべての日付を表示";
+"language_section_title" = "言語";
+"custom_icons_title" = "カスタムアイコン";
+"select_icon_title" = "アイコンを選択";
+"custom_colors_title" = "カスタムカラー";
+"custom_colors_title" = "カスタムカラー";
+"appearance_section_title" = "外観";
+"primary_color_option" = "背景色";
+"accent_color_option" = "テーマカラー";
+"amount_color_option" = "金額の色";
+"theme_presets_title" = "テーマプリセット";
+"background_image" = "背景画像";
+"select_background_image" = "背景画像を選択";
+"change_background_image" = "背景画像を変更";
+"delete_icon" = "アイコンをリセット";
+"reset_icon" = "デフォルトに戻す";
+
+
+
+"theme_custom" = "カスタム";
+"theme_sakura" = "桜";
+"theme_ocean" = "海";
+"theme_matcha" = "抹茶";
+"theme_sunset" = "夕日";
+"select_icon_button" = "アイコンを選択";

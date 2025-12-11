@@ -21,7 +21,7 @@ class CoreDataManager {
         }
     }
     
-    func createItem(type: String, timestamp: Date, title: String, locationName: String, price: Double, locationURL: String? = nil, memo: String? = nil, photoData: Data? = nil, transportDuration: String? = nil) -> ItineraryItem {
+    func createItem(type: String, timestamp: Date, title: String, locationName: String, price: Double, locationURL: String? = nil, memo: String? = nil, photoData: Data? = nil, transportDuration: String? = nil, iconName: String? = nil) -> ItineraryItem {
         let item = ItineraryItem(context: context)
         item.id = UUID()
         item.type = type
@@ -33,6 +33,7 @@ class CoreDataManager {
         item.memo = memo
         item.photoData = photoData
         item.transportDuration = transportDuration
+        item.iconName = iconName
         
         save()
         return item

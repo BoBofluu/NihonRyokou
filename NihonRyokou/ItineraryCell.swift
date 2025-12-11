@@ -69,7 +69,7 @@ class ItineraryCell: UITableViewCell {
     
     private let priceLabel = UILabel().then {
         $0.font = Theme.font(size: 14, weight: .bold)
-        $0.textColor = Theme.secondaryAccent
+        $0.textColor = Theme.amountColor
         $0.textAlignment = .right
         $0.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     }
@@ -223,7 +223,35 @@ class ItineraryCell: UITableViewCell {
             iconView.tintColor = Theme.accentColor
             durationLabel.isHidden = true
         }
-        iconView.image = UIImage(systemName: imageName)
+        
+
+        
+        // Map item type to capitalized category for custom icon lookup
+        let category: String
+        switch item.type {
+        case "transport": category = "Transport"
+        case "hotel": category = "Hotel"
+        case "restaurant": category = "Restaurant"
+        case "activity": category = "Activity"
+        case "shopping": category = "Shopping"
+        default: category = "Other"
+        }
+        
+        if let iconName = item.iconName, !iconName.isEmpty, let customImage = UIImage(named: iconName) {
+            iconView.image = customImage
+        } else if let customIcon = Theme.getIcon(for: category) {
+            iconView.image = customIcon
+        } else {
+            iconView.image = UIImage(systemName: imageName)
+        }
+        iconView.tintColor = Theme.accentColor
+        
+        // Update text colors for dynamic theme support
+        titleLabel.textColor = Theme.textDark
+        locationLabel.textColor = Theme.textLight
+        timeLabel.textColor = Theme.textDark
+        priceLabel.textColor = Theme.amountColor
+        durationLabel.textColor = Theme.textLight
         
         if let data = item.photoData, let image = UIImage(data: data) {
             photoImageView.image = image

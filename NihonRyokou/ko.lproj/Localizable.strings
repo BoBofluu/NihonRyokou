@@ -3,6 +3,7 @@
 "transport" = "교통";
 "hotel" = "숙소";
 "restaurant" = "식당";
+
 "activity" = "관광";
 
 "title_placeholder_default" = "제목 (예: 도쿄역)";
@@ -10,14 +11,19 @@
 "title_placeholder_hotel" = "호텔 이름";
 "title_placeholder_restaurant" = "식당 이름";
 
-"location_placeholder" = "위치";
-"price_placeholder" = "가격 (엔)";
+"location_placeholder" = "위치 (선택)";
+"price_placeholder" = "가격 (엔) (선택)";
 "url_placeholder" = "URL (선택)";
 "memo_placeholder" = "메모 (선택)";
-"travel_time_placeholder" = "이동 시간";
+"travel_time_placeholder" = "이동 시간 (선택)";
 
 "add_button_title" = "일정에 추가";
 "delete_action" = "삭제";
+"action_reset" = "초기화";
+"overwrite_custom_theme" = "사용자 정의 테마에 덮어쓰기";
+"overwrite_custom_theme_alert_title" = "사용자 정의 테마를 덮어쓰시겠습니까?";
+"overwrite_custom_theme_alert_message" = "현재 프리셋 색상으로 사용자 정의 테마 설정을 업데이트합니다.";
+"action_overwrite" = "덮어쓰기";
 "settings_title" = "설정";
 "language_setting" = "언어 설정";
 "itinerary_tab" = "일정";
@@ -52,3 +58,28 @@
 "no_items_message" = "항목이 없습니다. '+'를 눌러 추가하세요!";
 "select_month_title" = "월 선택";
 "show_all_dates" = "모든 날짜 표시";
+"language_section_title" = "언어";
+"custom_icons_title" = "사용자 지정 아이콘";
+"select_icon_title" = "아이콘 선택";
+"custom_colors_title" = "사용자 지정 색상";
+"custom_colors_title" = "사용자 지정 색상";
+"appearance_section_title" = "모양";
+"primary_color_option" = "배경 색상";
+"accent_color_option" = "테마 색상";
+"transport_card_color_option" = "교통 카드 색상";
+"amount_color_option" = "금액 색상";
+"theme_presets_title" = "테마 프리셋";
+"background_image" = "배경 이미지";
+"select_background_image" = "배경 이미지 선택";
+"change_background_image" = "배경 이미지 변경";
+"delete_icon" = "아이콘 초기화";
+"reset_icon" = "기본값으로 복원";
+
+
+
+"theme_custom" = "사용자 지정";
+"theme_sakura" = "벚꽃";
+"theme_ocean" = "바다";
+"theme_matcha" = "말차";
+"theme_sunset" = "일몰";
+"select_icon_button" = "아이콘 선택";

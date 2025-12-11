@@ -30,19 +30,38 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         let itineraryVC = ViewController()
         let itineraryNav = UINavigationController(rootViewController: itineraryVC)
-        itineraryNav.tabBarItem = UITabBarItem(title: "itinerary_tab".localized, image: UIImage(systemName: "list.bullet.rectangle.portrait"), tag: 1)
+        itineraryNav.tabBarItem = UITabBarItem(title: "itinerary_tab".localized, image: UIImage(systemName: "list.clipboard.fill"), tag: 1)
         
         let settingsVC = SettingsViewController()
         let settingsNav = UINavigationController(rootViewController: settingsVC)
-        settingsNav.tabBarItem = UITabBarItem(title: "settings_title".localized, image: UIImage(systemName: "gearshape"), tag: 2)
+        settingsNav.tabBarItem = UITabBarItem(title: "settings_title".localized, image: UIImage(systemName: "gearshape.fill"), tag: 2)
         
         let tabBarController = UITabBarController()
         tabBarController.viewControllers = [inputNav, itineraryNav, settingsNav]
         tabBarController.tabBar.tintColor = Theme.accentColor
-        tabBarController.tabBar.backgroundColor = .white
+        tabBarController.tabBar.backgroundColor = .clear // Changed from .white to .clear
+        tabBarController.tabBar.isTranslucent = true
         tabBarController.delegate = tabBarDelegate
         
         window?.rootViewController = tabBarController
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(updateTabBarTheme), name: NSNotification.Name("ThemeChanged"), object: nil)
+        updateTabBarTheme()
+    }
+    
+    @objc private func updateTabBarTheme() {
+        guard let tabBarController = window?.rootViewController as? UITabBarController else { return }
+        tabBarController.tabBar.tintColor = Theme.accentColor
+        
+        // Transparent Tab Bar
+        let appearance = UITabBarAppearance()
+        appearance.configureWithTransparentBackground()
+        appearance.backgroundColor = .clear
+        
+        tabBarController.tabBar.standardAppearance = appearance
+        if #available(iOS 15.0, *) {
+            tabBarController.tabBar.scrollEdgeAppearance = appearance
+        }
     }
     
     func reloadRootViewController() {
