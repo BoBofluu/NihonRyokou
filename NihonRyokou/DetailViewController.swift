@@ -202,11 +202,30 @@ class DetailViewController: UIViewController {
         
         memoLabel.text = item.memo ?? ""
         
-        if let data = item.photoData, let image = UIImage(data: data) {
-            imageView.image = image
-            imageView.isHidden = false
-            imageView.snp.updateConstraints { make in
-                make.height.equalTo(300)
+        if let data = item.photoData {
+            let cacheKey = item.id?.uuidString ?? ""
+            
+            // 1. Try Cache
+            if let cachedImage = ImageCacheManager.shared.image(forKey: cacheKey) {
+                imageView.image = cachedImage
+                imageView.isHidden = false
+                imageView.snp.updateConstraints { make in
+                    make.height.equalTo(300)
+                }
+            } 
+            // 2. Decode & Cache
+            else if let image = UIImage(data: data) {
+                imageView.image = image
+                imageView.isHidden = false
+                imageView.snp.updateConstraints { make in
+                    make.height.equalTo(300)
+                }
+                ImageCacheManager.shared.setImage(image, forKey: cacheKey)
+            } else {
+                imageView.isHidden = true
+                imageView.snp.updateConstraints { make in
+                    make.height.equalTo(0)
+                }
             }
         } else {
             imageView.isHidden = true

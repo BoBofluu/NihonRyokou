@@ -253,9 +253,22 @@ class ItineraryCell: UITableViewCell {
         priceLabel.textColor = Theme.amountColor
         durationLabel.textColor = Theme.textLight
         
-        if let data = item.photoData, let image = UIImage(data: data) {
-            photoImageView.image = image
-            photoImageView.isHidden = false
+        if let data = item.photoData {
+            let cacheKey = item.id?.uuidString ?? ""
+            
+            // 1. Try Cache
+            if let cachedImage = ImageCacheManager.shared.image(forKey: cacheKey) {
+                photoImageView.image = cachedImage
+                photoImageView.isHidden = false
+            } 
+            // 2. Decode & Cache
+            else if let image = UIImage(data: data) {
+                photoImageView.image = image
+                photoImageView.isHidden = false
+                ImageCacheManager.shared.setImage(image, forKey: cacheKey)
+            } else {
+                photoImageView.isHidden = true
+            }
         } else {
             photoImageView.isHidden = true
         }
