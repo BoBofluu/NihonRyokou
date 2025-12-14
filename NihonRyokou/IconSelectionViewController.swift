@@ -19,9 +19,13 @@ class IconSelectionViewController: UIViewController, UICollectionViewDelegate, U
     
     private var currentIconNames: [String] {
         if category == "Transport" {
-            return (1...39).map { "car-\($0)" }
+            return (1...38).map { "car-\($0)" }
         } else if category == "Hotel" {
             return (1...17).map { "hotel-\($0)" }
+        } else if category == "Restaurant" {
+            return (1...37).map { "food-\($0)" }
+        } else if category == "Activity" {
+            return (1...29).map { "schedule-\($0)" }
         }
         return iconNames
     }
@@ -65,7 +69,8 @@ class IconSelectionViewController: UIViewController, UICollectionViewDelegate, U
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "IconCell", for: indexPath) as! IconCell
         let iconName = currentIconNames[indexPath.item]
-        cell.configure(imageName: iconName, isCustom: (category == "Transport" || category == "Hotel"))
+        let isCustom = (category == "Transport" || category == "Hotel" || category == "Restaurant" || category == "Activity")
+        cell.configure(imageName: iconName, isCustom: isCustom)
         return cell
     }
     
@@ -73,7 +78,7 @@ class IconSelectionViewController: UIViewController, UICollectionViewDelegate, U
         let iconName = currentIconNames[indexPath.item]
         let image: UIImage?
         
-        if category == "Transport" || category == "Hotel" {
+        if category == "Transport" || category == "Hotel" || category == "Restaurant" || category == "Activity" {
             image = UIImage(named: iconName)
         } else {
             image = UIImage(systemName: iconName)

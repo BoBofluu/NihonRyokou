@@ -466,9 +466,13 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         } else {
             // No saved state, apply Default for this category
             let defaultName: String
-            if index == 1 { // Hotel
+            if index == 1 {
                 defaultName = "hotel-1"
-            } else { // Transport and others
+            } else if index == 2 {
+                defaultName = "food-1"
+            } else if index == 3 {
+                defaultName = "schedule-1"
+            } else {
                 defaultName = "car-1"
             }
             
@@ -563,10 +567,13 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
     
     @objc private func didTapSelectIcon() {
         let vc = IconSelectionViewController()
-        if segmentedControl.selectedSegmentIndex == 1 {
-            vc.category = "Hotel"
-        } else {
-            vc.category = "Transport"
+        let index = segmentedControl.selectedSegmentIndex
+        switch index {
+        case 0: vc.category = "Transport"
+        case 1: vc.category = "Hotel"
+        case 2: vc.category = "Restaurant"
+        case 3: vc.category = "Activity"
+        default: vc.category = "Transport"
         }
         vc.onIconSelected = { [weak self] image, name in
             guard let self = self else { return }

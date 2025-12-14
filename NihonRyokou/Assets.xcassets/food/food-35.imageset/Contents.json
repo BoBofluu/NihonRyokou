@@ -1,0 +1,23 @@
+{
+  "images": [
+    {
+      "filename": "food-35.png",
+      "idiom": "universal",
+      "scale": "1x"
+    },
+    {
+      "filename": "food-35-2x.png",
+      "idiom": "universal",
+      "scale": "2x"
+    },
+    {
+      "filename": "food-35-3x.png",
+      "idiom": "universal",
+      "scale": "3x"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1
+  }
+}
