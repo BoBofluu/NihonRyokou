@@ -12,7 +12,7 @@ struct ItinerarySection {
     }
 }
 
-class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+class ListViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
     private var allItems: [ItineraryItem] = []
     private var sections: [ItinerarySection] = []

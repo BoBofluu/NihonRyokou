@@ -28,7 +28,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let inputNav = UINavigationController(rootViewController: inputVC)
         inputNav.tabBarItem = UITabBarItem(title: "input_tab".localized, image: UIImage(systemName: "plus.circle.fill"), tag: 0)
         
-        let itineraryVC = ViewController()
+        let itineraryVC = ListViewController()
         let itineraryNav = UINavigationController(rootViewController: itineraryVC)
         itineraryNav.tabBarItem = UITabBarItem(title: "itinerary_tab".localized, image: UIImage(systemName: "list.clipboard.fill"), tag: 1)
         
