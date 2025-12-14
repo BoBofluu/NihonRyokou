@@ -787,12 +787,23 @@ class MemoEditorViewController: UIViewController {
         
         setupUI()
         
-        // Add Tap Gesture to dismiss keyboard
-        let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
-        view.addGestureRecognizer(tap)
+        // Auto-Save Behavior: Tap outside (dimmed background) -> Dismiss Keyboard first, then Save & Close
+        let tapOutside = UITapGestureRecognizer(target: self, action: #selector(handleTapOutside))
+        dimmedView.addGestureRecognizer(tapOutside)
+        dimmedView.isUserInteractionEnabled = true
         
         textView.text = initialText
         textView.becomeFirstResponder()
+    }
+    
+    @objc private func handleTapOutside() {
+        if textView.isFirstResponder {
+            // First tap: Dismiss keyboard
+            view.endEditing(true)
+        } else {
+            // Second tap (no keyboard): Save and Close
+            didTapDone()
+        }
     }
     
     @objc private func dismissKeyboard() {
