@@ -39,7 +39,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let tabBarController = UITabBarController()
         tabBarController.viewControllers = [inputNav, itineraryNav, settingsNav]
         tabBarController.tabBar.tintColor = Theme.accentColor
-        tabBarController.tabBar.backgroundColor = .clear // Changed from .white to .clear
+        tabBarController.tabBar.backgroundColor = .white
         tabBarController.tabBar.isTranslucent = true
         tabBarController.delegate = tabBarDelegate
         
@@ -53,15 +53,29 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let tabBarController = window?.rootViewController as? UITabBarController else { return }
         tabBarController.tabBar.tintColor = Theme.accentColor
         
-        // Transparent Tab Bar
+        // Opaque White Tab Bar
         let appearance = UITabBarAppearance()
-        appearance.configureWithTransparentBackground()
-        appearance.backgroundColor = .clear
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .white
         
         tabBarController.tabBar.standardAppearance = appearance
         if #available(iOS 15.0, *) {
             tabBarController.tabBar.scrollEdgeAppearance = appearance
         }
+        
+        // Global Navigation Bar Appearance
+        let navAppearance = UINavigationBarAppearance()
+        navAppearance.configureWithTransparentBackground()
+        navAppearance.backButtonAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.clear] // Hide text
+        
+        // Use Template mode to allow Tint Color (Theme Color) to apply
+        let backImage = UIImage(named: "back-1")?.withRenderingMode(.alwaysTemplate)
+        navAppearance.setBackIndicatorImage(backImage, transitionMaskImage: backImage)
+        
+        UINavigationBar.appearance().standardAppearance = navAppearance
+        UINavigationBar.appearance().compactAppearance = navAppearance
+        UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
+        UINavigationBar.appearance().tintColor = .systemBlue
     }
     
     func reloadRootViewController() {

@@ -18,6 +18,7 @@
 "travel_time_placeholder" = "Travel Time (Optional)";
 
 "add_button_title" = "Add to Itinerary";
+"delete_action" = "Delete";
 "delete_action_reset" = "Reset";
 "overwrite_custom_theme" = "Overwrite to Custom Theme";
 "overwrite_custom_theme_alert_title" = "Overwrite Custom Theme?";

@@ -18,6 +18,7 @@
 "travel_time_placeholder" = "移動時間（選填）";
 
 "add_button_title" = "加入行程";
+"delete_action" = "刪除";
 "delete_action_reset" = "重置";
 "overwrite_custom_theme" = "將此配色覆蓋至自訂主題";
 "overwrite_custom_theme_alert_title" = "是否覆蓋自訂主題？";

@@ -14,6 +14,9 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
     private var selectedHour = 0
     private var selectedMinute = 0
     
+    // Store multi-line memo text
+    private var fullMemoText: String?
+    
     // MARK: - UI Components (UI 元件)
     
     private let backgroundImageView = UIImageView().then {
@@ -279,6 +282,9 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         durationField.inputView = durationPicker
         durationField.delegate = self
         durationField.tintColor = .clear
+        
+        // Memo Field (Custom Editor)
+        memoField.delegate = self
         
         // Segmented Control
         segmentedControl.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
@@ -661,7 +667,7 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
             locationName: locationField.text ?? "",
             price: price,
             locationURL: urlString,
-            memo: memoField.text,
+            memo: fullMemoText ?? memoField.text, // Use full text if available
             photoData: (type == "transport") ? nil : selectedImageData,
             transportDuration: (type == "transport") ? durationField.text : nil,
             iconName: selectedIconName // Save icon for all types
@@ -682,7 +688,9 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         locationField.text = ""
         priceField.text = ""
         urlField.text = ""
+        urlField.text = ""
         memoField.text = ""
+        fullMemoText = nil
         
         // Removed resetting of icon states
         
@@ -707,5 +715,143 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
             return false
         }
         return true
+    }
+    
+    func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
+        if textField == memoField {
+            let editor = MemoEditorViewController(initialText: fullMemoText ?? memoField.text ?? "")
+            editor.onSave = { [weak self] text in
+                self?.fullMemoText = text
+                // Show preview (replace newlines with spaces for single line field)
+                self?.memoField.text = text.replacingOccurrences(of: "\n", with: " ")
+            }
+            editor.modalPresentationStyle = .overFullScreen
+            editor.modalTransitionStyle = .crossDissolve
+            present(editor, animated: true)
+            return false // Prevent keyboard
+        }
+        return true
+    }
+}
+
+// Centered Modal Text Editor
+class MemoEditorViewController: UIViewController {
+    var onSave: ((String) -> Void)?
+    private let initialText: String
+    
+    // Dimmed Background
+    private let dimmedView = UIView().then {
+        $0.backgroundColor = UIColor.black.withAlphaComponent(0.5)
+    }
+    
+    // Card Container
+    private let containerView = UIView().then {
+        $0.backgroundColor = Theme.cardColor
+        $0.layer.cornerRadius = 16
+        $0.clipsToBounds = true
+    }
+    
+    private let headerView = UIView().then {
+        $0.backgroundColor = Theme.primaryColor
+    }
+    
+    private lazy var cancelButton = UIButton(type: .system).then {
+        $0.setImage(UIImage(named: "close-1")?.withRenderingMode(.alwaysTemplate), for: .normal)
+        $0.tintColor = .systemRed
+        $0.addTarget(self, action: #selector(didTapCancel), for: .touchUpInside)
+    }
+    
+    private lazy var doneButton = UIButton(type: .system).then {
+        $0.setImage(UIImage(named: "done-1")?.withRenderingMode(.alwaysTemplate), for: .normal)
+        $0.tintColor = .systemBlue
+        $0.addTarget(self, action: #selector(didTapDone), for: .touchUpInside)
+    }
+    
+    private let textView = UITextView().then {
+        $0.font = Theme.font(size: 16, weight: .regular)
+        $0.textColor = Theme.textDark
+        $0.backgroundColor = Theme.inputFieldColor
+        $0.layer.cornerRadius = 8
+        $0.textContainerInset = UIEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
+    }
+    
+    init(initialText: String) {
+        self.initialText = initialText
+        super.init(nibName: nil, bundle: nil)
+    }
+    required init?(coder: NSCoder) { fatalError() }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .clear
+        
+        setupUI()
+        
+        // Add Tap Gesture to dismiss keyboard
+        let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        view.addGestureRecognizer(tap)
+        
+        textView.text = initialText
+        textView.becomeFirstResponder()
+    }
+    
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
+    }
+    
+    private func setupUI() {
+        view.addSubview(dimmedView)
+        view.addSubview(containerView)
+        
+        containerView.addSubview(headerView)
+        headerView.addSubview(cancelButton)
+        headerView.addSubview(doneButton)
+        containerView.addSubview(textView)
+        
+        dimmedView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        
+        // Center the card
+        containerView.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+            make.width.equalToSuperview().multipliedBy(0.70) // Narrower (70% width) for easier background tap
+            make.height.equalTo(300)
+        }
+        
+        headerView.snp.makeConstraints { make in
+            make.top.leading.trailing.equalToSuperview()
+            make.height.equalTo(50)
+        }
+        
+        cancelButton.snp.makeConstraints { make in
+            make.leading.equalToSuperview().offset(16) // Edge aligned
+            make.centerY.equalToSuperview()
+            make.width.height.equalTo(44)
+        }
+        
+        doneButton.snp.makeConstraints { make in
+            make.trailing.equalToSuperview().offset(-16) // Edge aligned
+            make.centerY.equalToSuperview()
+            make.width.height.equalTo(44)
+        }
+        
+        textView.snp.makeConstraints { make in
+            make.top.equalTo(headerView.snp.bottom).offset(10)
+            make.leading.equalToSuperview().offset(16)
+            make.trailing.equalToSuperview().offset(-16)
+            make.bottom.equalToSuperview().offset(-16)
+        }
+    }
+    
+    @objc private func didTapCancel() {
+        view.endEditing(true)
+        dismiss(animated: true)
+    }
+    
+    @objc private func didTapDone() {
+        view.endEditing(true)
+        onSave?(textView.text)
+        dismiss(animated: true)
     }
 }

@@ -89,6 +89,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         NotificationCenter.default.addObserver(self, selector: #selector(updateTheme), name: NSNotification.Name("ThemeChanged"), object: nil)
         
         updateTheme() // Initial theme application
+        
+        // Remove Back Button Text for next pushed controllers
+        navigationItem.backButtonDisplayMode = .minimal
     }
     
     @objc private func updateTheme() {

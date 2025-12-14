@@ -18,6 +18,7 @@
 "travel_time_placeholder" = "移動時間（任意）";
 
 "add_button_title" = "リストに追加";
+"delete_action" = "削除";
 "delete_action_reset" = "リセット";
 "overwrite_custom_theme" = "現在の設定をカスタムテーマに保存";
 "overwrite_custom_theme_alert_title" = "カスタムテーマを上書きしますか？";

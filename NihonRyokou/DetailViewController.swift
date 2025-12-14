@@ -19,17 +19,23 @@ class DetailViewController: UIViewController {
         $0.addGestureRecognizer(tap)
     }
     
-    private let titleLabel = UILabel().then {
-        $0.font = Theme.font(size: 24, weight: .bold)
-        $0.numberOfLines = 0
-        $0.textColor = Theme.textDark
+    private func createSelectableTextView(font: UIFont, color: UIColor) -> UITextView {
+        return UITextView().then {
+            $0.font = font
+            $0.textColor = color
+            $0.isEditable = false
+            $0.isScrollEnabled = false
+            $0.backgroundColor = .clear
+            $0.textContainerInset = .zero
+            $0.textContainer.lineFragmentPadding = 0
+            $0.dataDetectorTypes = .link // Enable links
+            $0.isUserInteractionEnabled = true
+        }
     }
+
+    private lazy var titleLabel = createSelectableTextView(font: Theme.font(size: 24, weight: .bold), color: Theme.textDark)
     
-    private let locationLabel = UILabel().then {
-        $0.font = Theme.font(size: 16, weight: .medium)
-        $0.textColor = .systemGray
-        $0.numberOfLines = 0
-    }
+    private lazy var locationLabel = createSelectableTextView(font: Theme.font(size: 16, weight: .medium), color: .systemGray)
     
     // 修改：改為垂直堆疊，靠左對齊
     private let infoStack = UIStackView().then {
@@ -39,29 +45,19 @@ class DetailViewController: UIViewController {
         $0.spacing = 8 // 稍微縮小間距
     }
     
-    private let timeLabel = UILabel().then {
-        $0.font = Theme.font(size: 16, weight: .medium)
-        $0.textColor = Theme.textLight
-        $0.numberOfLines = 0 // 允許換行
-    }
+    private lazy var timeLabel = createSelectableTextView(font: Theme.font(size: 16, weight: .medium), color: Theme.textLight)
     
-    private let priceLabel = UILabel().then {
-        $0.font = Theme.font(size: 20, weight: .bold)
-        $0.textColor = Theme.secondaryAccent
-        $0.numberOfLines = 0
-        $0.textAlignment = .left // 改為靠左
-    }
+    private lazy var priceLabel = createSelectableTextView(font: Theme.font(size: 20, weight: .bold), color: Theme.secondaryAccent)
     
-    private let memoLabel = UILabel().then {
-        $0.font = Theme.font(size: 16, weight: .regular)
-        $0.numberOfLines = 0
-        $0.textColor = Theme.textDark
-    }
+    private lazy var memoLabel = createSelectableTextView(font: Theme.font(size: 16, weight: .regular), color: Theme.textDark)
     
     private lazy var webView = WKWebView().then {
         $0.layer.cornerRadius = 12
         $0.clipsToBounds = true
         $0.backgroundColor = .systemGray6
+        // Add border for separation
+        $0.layer.borderWidth = 1
+        $0.layer.borderColor = UIColor.systemGray4.cgColor
     }
     
     init(item: ItineraryItem) {
@@ -73,13 +69,19 @@ class DetailViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
         
         title = "detail_title".localized
         
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "pencil"), style: .plain, target: self, action: #selector(didTapEdit))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "edit-1")?.withRenderingMode(.alwaysTemplate), style: .plain, target: self, action: #selector(didTapEdit))
+        navigationItem.rightBarButtonItem?.tintColor = .systemBlue
         
         setupUI()
         configureData()
@@ -151,8 +153,8 @@ class DetailViewController: UIViewController {
         
         webView.snp.makeConstraints { make in
             make.top.equalTo(memoLabel.snp.bottom).offset(24)
-            make.leading.equalToSuperview().offset(padding)
-            make.trailing.equalToSuperview().offset(-padding)
+            make.leading.equalToSuperview().offset(36) // Increased padding for map
+            make.trailing.equalToSuperview().offset(-36) // Increased padding for map
             make.height.equalTo(500)
             make.bottom.equalToSuperview().offset(-40)
         }
@@ -186,10 +188,16 @@ class DetailViewController: UIViewController {
         numberFormatter.numberStyle = .decimal
         numberFormatter.maximumFractionDigits = 0
         
-        if let priceString = numberFormatter.string(from: NSNumber(value: item.price)) {
-            priceLabel.text = "¥\(priceString)"
+        if item.price > 0 {
+            priceLabel.isHidden = false
+            if let priceString = numberFormatter.string(from: NSNumber(value: item.price)) {
+                priceLabel.text = "¥\(priceString)"
+            } else {
+                priceLabel.text = "¥\(Int(item.price))"
+            }
         } else {
-            priceLabel.text = "¥\(Int(item.price))"
+            priceLabel.isHidden = true
+            priceLabel.text = nil
         }
         
         memoLabel.text = item.memo ?? ""
@@ -235,11 +243,6 @@ class ImagePreviewViewController: UIViewController {
         $0.contentMode = .scaleAspectFit
     }
     
-    private let closeButton = UIButton(type: .close).then {
-        $0.tintColor = .white
-        $0.addTarget(ImagePreviewViewController.self, action: #selector(dismissSelf), for: .touchUpInside)
-    }
-    
     init(image: UIImage) {
         super.init(nibName: nil, bundle: nil)
         imageView.image = image
@@ -251,16 +254,48 @@ class ImagePreviewViewController: UIViewController {
         view.backgroundColor = .black
         
         view.addSubview(imageView)
-        view.addSubview(closeButton)
         
         imageView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
         }
         
-        closeButton.snp.makeConstraints { make in
-            make.top.equalTo(view.safeAreaLayoutGuide).offset(16)
-            make.trailing.equalTo(view.safeAreaLayoutGuide).offset(-16)
+        // Add Pan Gesture
+        let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
+        view.addGestureRecognizer(pan)
+    }
+    
+    @objc private func listSelf() { dismiss(animated: true) } // Typo correction in original was dismissSelf, keeping consistent logic
+    @objc private func dismissSelf() { dismiss(animated: true) }
+    
+    @objc private func handlePan(_ sender: UIPanGestureRecognizer) {
+        let translation = sender.translation(in: view)
+        let velocity = sender.velocity(in: view)
+        
+        switch sender.state {
+        case .changed:
+            // Move view with drag
+            view.transform = CGAffineTransform(translationX: translation.x, y: translation.y)
+            
+            // Fade background based on vertical distance
+            let progress = abs(translation.y) / view.bounds.height
+            view.backgroundColor = UIColor.black.withAlphaComponent(1 - min(progress * 2, 0.8))
+            
+        case .ended:
+            // Dismiss if dragged far enough or fast enough downwards
+            if translation.y > 100 || velocity.y > 500 {
+                dismiss(animated: true)
+            } else {
+                // Reset
+                UIView.animate(withDuration: 0.3) {
+                    self.view.transform = .identity
+                    self.view.backgroundColor = .black
+                }
+            }
+            
+        default:
+            break
         }
     }
-    @objc private func dismissSelf() { dismiss(animated: true) }
 }
+
+
