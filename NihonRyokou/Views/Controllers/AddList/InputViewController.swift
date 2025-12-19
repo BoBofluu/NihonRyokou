@@ -24,8 +24,6 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         $0.clipsToBounds = true
     }
     
-
-    
     // 主要容器視圖，包含陰影效果
     private let containerView = UIView().then {
         $0.backgroundColor = Theme.cardColor
@@ -57,6 +55,7 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
     }
     
     // MARK: - Icon Selection (New)
+    
     private let iconSelectionContainer = UIView().then {
         $0.backgroundColor = Theme.inputFieldColor
         $0.layer.cornerRadius = 12
@@ -67,7 +66,6 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         $0.contentMode = .scaleAspectFit
         $0.tintColor = Theme.accentColor
         $0.image = UIImage(named: "car-1") // Default to first custom asset
-
     }
     
     private lazy var selectIconButton = UIButton(type: .system).then {
@@ -96,25 +94,25 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
     }
     
     // MARK: - Date Reset Button
+    
     private lazy var resetDateButton = UIButton(type: .system).then {
         $0.setImage(UIImage(named: "reset-1")?.withRenderingMode(.alwaysOriginal), for: .normal)
         $0.addTarget(self, action: #selector(didTapResetDate), for: .touchUpInside)
     }
 
     // MARK: - Duration Picker
+    
     private lazy var durationPicker = UIPickerView().then {
         $0.delegate = self
         $0.dataSource = self
     }
     
     // MARK: - Photo Area
+    
     private let photoContainer = UIView().then {
         $0.backgroundColor = .clear
         $0.clipsToBounds = true
     }
-    
-
-
     
     private lazy var photoButton = UIButton(type: .system).then {
         var config = UIButton.Configuration.gray()
@@ -152,7 +150,6 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
     // 建立帶有圖示的可愛風格輸入框
     private func createCuteTextField(placeholder: String, keyboardType: UIKeyboardType = .default, iconName: String? = nil, hasHeightConstraint: Bool = true) -> UITextField {
         let tf = UITextField().then {
-
             $0.attributedPlaceholder = NSAttributedString(
                 string: placeholder,
                 attributes: [.foregroundColor: Theme.placeholderColor]
@@ -190,6 +187,7 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
     }
     
     // MARK: - Fields Definition
+    
     private lazy var titleField = createCuteTextField(placeholder: "title_placeholder_default".localized, iconName: "pencil")
     private lazy var durationField = createCuteTextField(placeholder: "travel_time_placeholder".localized, iconName: "clock")
     private lazy var locationField = createCuteTextField(placeholder: "location_placeholder".localized, iconName: "mappin.and.ellipse")
@@ -211,6 +209,7 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
     }
     
     // MARK: - Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = Theme.primaryColor
@@ -292,6 +291,7 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
     }
     
     // MARK: - Layout
+    
     private func setupUI() {
         view.addSubview(backgroundImageView)
         view.addSubview(containerView)
@@ -698,9 +698,6 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         photoPreview.isHidden = true
         photoDeleteButton.isHidden = true
         photoButton.isHidden = false
-
-        // selectedHour = 0
-        // selectedMinute = 0
     }
     
     private func showAlert(message: String) {
@@ -798,16 +795,12 @@ class MemoEditorViewController: UIViewController {
     
     @objc private func handleTapOutside() {
         if textView.isFirstResponder {
-            // First tap: Dismiss keyboard
-            view.endEditing(true)
+            textView.resignFirstResponder()
+            onSave?(textView.text)
+            dismiss(animated: true)
         } else {
-            // Second tap (no keyboard): Save and Close
-            didTapDone()
+            dismiss(animated: true)
         }
-    }
-    
-    @objc private func dismissKeyboard() {
-        view.endEditing(true)
     }
     
     private func setupUI() {
@@ -817,38 +810,38 @@ class MemoEditorViewController: UIViewController {
         containerView.addSubview(headerView)
         headerView.addSubview(cancelButton)
         headerView.addSubview(doneButton)
+        
         containerView.addSubview(textView)
         
         dimmedView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
         }
         
-        // Center the card
         containerView.snp.makeConstraints { make in
             make.center.equalToSuperview()
-            make.width.equalToSuperview().multipliedBy(0.70) // Narrower (70% width) for easier background tap
+            make.width.equalToSuperview().multipliedBy(0.85)
             make.height.equalTo(300)
         }
         
         headerView.snp.makeConstraints { make in
             make.top.leading.trailing.equalToSuperview()
-            make.height.equalTo(50)
+            make.height.equalTo(44)
         }
         
         cancelButton.snp.makeConstraints { make in
-            make.leading.equalToSuperview().offset(16) // Edge aligned
+            make.leading.equalToSuperview().offset(12)
             make.centerY.equalToSuperview()
-            make.width.height.equalTo(44)
+            make.size.equalTo(30)
         }
         
         doneButton.snp.makeConstraints { make in
-            make.trailing.equalToSuperview().offset(-16) // Edge aligned
+            make.trailing.equalToSuperview().offset(-12)
             make.centerY.equalToSuperview()
-            make.width.height.equalTo(44)
+            make.size.equalTo(30)
         }
         
         textView.snp.makeConstraints { make in
-            make.top.equalTo(headerView.snp.bottom).offset(10)
+            make.top.equalTo(headerView.snp.bottom).offset(12)
             make.leading.equalToSuperview().offset(16)
             make.trailing.equalToSuperview().offset(-16)
             make.bottom.equalToSuperview().offset(-16)
@@ -856,12 +849,12 @@ class MemoEditorViewController: UIViewController {
     }
     
     @objc private func didTapCancel() {
-        view.endEditing(true)
+        textView.resignFirstResponder()
         dismiss(animated: true)
     }
     
     @objc private func didTapDone() {
-        view.endEditing(true)
+        textView.resignFirstResponder()
         onSave?(textView.text)
         dismiss(animated: true)
     }

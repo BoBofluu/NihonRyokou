@@ -12,7 +12,7 @@ struct ItinerarySection {
     }
 }
 
-class ListViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+class ListViewController: UIViewController {
     
     private var allItems: [ItineraryItem] = []
     private var sections: [ItinerarySection] = []
@@ -363,90 +363,9 @@ class ListViewController: UIViewController, UITableViewDelegate, UITableViewData
         generator.notificationOccurred(.success)
     }
     
-    // MARK: - TableView DataSource
+    // MARK: - Single Delete (單項刪除)
     
-    func numberOfSections(in tableView: UITableView) -> Int {
-        return sections.count
-    }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return sections[section].items.count
-    }
-    
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        // Hide header if a specific date is selected
-        if selectedDate != nil {
-            return nil
-        }
-        
-        let headerView = UIView()
-        headerView.backgroundColor = .clear
-        
-        let label = UILabel().then {
-            $0.font = Theme.font(size: 18, weight: .bold) // Increased size slightly for better visibility without container
-            $0.textColor = Theme.textDark
-        }
-        
-        let sectionData = sections[section]
-        let dateFormatter = DateFormatter()
-        dateFormatter.locale = LanguageManager.shared.currentLocale
-        dateFormatter.dateFormat = "yyyy/MM/dd (E)"
-        let dateStr = dateFormatter.string(from: sectionData.date)
-        
-        let numberFormatter = NumberFormatter()
-        numberFormatter.numberStyle = .decimal
-        let totalStr = numberFormatter.string(from: NSNumber(value: sectionData.totalAmount)) ?? "0"
-        
-        label.text = "\(dateStr)   ¥\(totalStr)"
-        
-        headerView.addSubview(label)
-        
-        // Left aligned
-        label.snp.makeConstraints { make in
-            make.leading.equalToSuperview().offset(20)
-            make.centerY.equalToSuperview()
-        }
-        
-        return headerView
-    }
-    
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        if selectedDate != nil {
-            return 0
-        }
-        return 40
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: ItineraryCell.identifier, for: indexPath) as? ItineraryCell else {
-            return UITableViewCell()
-        }
-        
-        let item = sections[indexPath.section].items[indexPath.row]
-        cell.configure(with: item)
-        return cell
-    }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-        
-        let item = sections[indexPath.section].items[indexPath.row]
-        let detailVC = DetailViewController(item: item)
-        navigationController?.pushViewController(detailVC, animated: true)
-    }
-    
-    // MARK: - Single Delete
-    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        let deleteAction = UIContextualAction(style: .destructive, title: "delete_action".localized) { [weak self] (_, _, completion) in
-            self?.showDeleteConfirmation(at: indexPath)
-            completion(true)
-        }
-        deleteAction.backgroundColor = .systemRed
-        deleteAction.image = UIImage(systemName: "trash")
-        return UISwipeActionsConfiguration(actions: [deleteAction])
-    }
-    
-    private func showDeleteConfirmation(at indexPath: IndexPath) {
+    func showDeleteConfirmation(at indexPath: IndexPath) {
         let alert = UIAlertController(
             title: "delete_confirm_title".localized,
             message: "delete_confirm_message".localized,
@@ -487,7 +406,7 @@ class ListViewController: UIViewController, UITableViewDelegate, UITableViewData
         // Update Global Total
         updateTotalLabel()
         
-        // Update Calendar Strip (Remove date if no items left)
+        // Update Calendar Strip if needed
         let calendar = Calendar.current
         let datesToDisplay: [ItineraryItem]
         if let month = currentMonth {
@@ -506,29 +425,101 @@ class ListViewController: UIViewController, UITableViewDelegate, UITableViewData
         let sortedDates = uniqueDates.sorted()
         calendarStrip.setDates(sortedDates)
         
-        // If current selected date is now empty, clear selection or switch to all?
-        // If we are in single date mode and deleting the last item:
         if let currentSelected = selectedDate, !sortedDates.contains(currentSelected) {
-            // The currently selected date is gone. Switch to "All" (nil)
-            // But we don't want to reload tableview again because we just did the animation.
-            // Just update state:
             selectedDate = nil
-            // Updating calendar strip selection to nil:
             calendarStrip.selectDate(nil)
-            
-            // However, if we were viewing a single section, the tableview is now empty (if it was the only section).
-            // If we switch to nil (All), we should probably show all items remaining?
-            // User experience: If I delete the last item of "Day X", I probably expect to see the overview or empty state?
-            // Given the tableview logic above, 'sections' was modified.
-            // If selectedDate WAS set, 'sections' had only 1 section. Now it has 0.
-            // So the screen is empty.
-            // If the user wants to see other days, they should see "All"?
-            // Let's trigger a reload to show "All" if the specific day is gone.
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                  self.filterItems(for: nil)
             }
         }
+    }
+}
+
+// MARK: - UITableViewDataSource & UITableViewDelegate
+
+extension ListViewController: UITableViewDelegate, UITableViewDataSource {
+    
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return sections.count
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return sections[section].items.count
+    }
+    
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        // Hide header if a specific date is selected
+        if selectedDate != nil {
+            return nil
+        }
+        
+        let headerView = UIView()
+        headerView.backgroundColor = .clear
+        
+        // 增加字體大小以提高可讀性
+        let label = UILabel().then {
+            $0.font = Theme.font(size: 18, weight: .bold)
+            $0.textColor = Theme.textDark
+        }
+        
+        let sectionData = sections[section]
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = LanguageManager.shared.currentLocale
+        dateFormatter.dateFormat = "yyyy/MM/dd (E)"
+        let dateStr = dateFormatter.string(from: sectionData.date)
+        
+        let numberFormatter = NumberFormatter()
+        numberFormatter.numberStyle = .decimal
+        let totalStr = numberFormatter.string(from: NSNumber(value: sectionData.totalAmount)) ?? "0"
+        
+        label.text = "\(dateStr)   ¥\(totalStr)"
+        
+        headerView.addSubview(label)
+        
+        label.snp.makeConstraints { make in
+            make.leading.equalToSuperview().offset(20)
+            make.centerY.equalToSuperview()
+        }
+        
+        return headerView
+    }
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        if selectedDate != nil {
+            return 0
+        }
+        return 40
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: ItineraryCell.identifier, for: indexPath) as? ItineraryCell else {
+            return UITableViewCell()
+        }
+        
+        let item = sections[indexPath.section].items[indexPath.row]
+        cell.configure(with: item)
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        
+        let item = sections[indexPath.section].items[indexPath.row]
+        let detailVC = DetailViewController(item: item)
+        navigationController?.pushViewController(detailVC, animated: true)
+    }
+    
+    // MARK: - Swipe Actions (滑動動作)
+    
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: "delete_action".localized) { [weak self] (_, _, completion) in
+            self?.showDeleteConfirmation(at: indexPath)
+            completion(true)
+        }
+        deleteAction.backgroundColor = UIColor.systemRed
+        deleteAction.image = UIImage(systemName: "trash")
+        return UISwipeActionsConfiguration(actions: [deleteAction])
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
