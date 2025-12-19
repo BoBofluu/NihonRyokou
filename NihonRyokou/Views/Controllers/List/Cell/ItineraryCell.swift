@@ -253,24 +253,31 @@ class ItineraryCell: UITableViewCell {
         priceLabel.textColor = Theme.amountColor
         durationLabel.textColor = Theme.textLight
         
-        if let data = item.photoData {
-            let cacheKey = item.id?.uuidString ?? ""
+        // Image Loading Logic: Cache -> File System -> Core Data (Legacy)
+        let uuid = item.id ?? UUID()
+        let cacheKey = uuid.uuidString
+        
+        photoImageView.isHidden = true // Default hidden
+        
+        // 1. Check Memory Cache
+        if let cachedImage = ImageCacheManager.shared.image(forKey: cacheKey) {
+            photoImageView.image = cachedImage
+            photoImageView.isHidden = false
+        }
+        // 2. Check File System
+        else if let fileImage = ImageFileManager.shared.loadImage(for: uuid) {
+            photoImageView.image = fileImage
+            photoImageView.isHidden = false
+            ImageCacheManager.shared.setImage(fileImage, forKey: cacheKey)
+        }
+        // 3. Fallback to Core Data (Legacy Support)
+        else if let data = item.photoData, let dbImage = UIImage(data: data) {
+            photoImageView.image = dbImage
+            photoImageView.isHidden = false
+            ImageCacheManager.shared.setImage(dbImage, forKey: cacheKey)
             
-            // 1. Try Cache
-            if let cachedImage = ImageCacheManager.shared.image(forKey: cacheKey) {
-                photoImageView.image = cachedImage
-                photoImageView.isHidden = false
-            } 
-            // 2. Decode & Cache
-            else if let image = UIImage(data: data) {
-                photoImageView.image = image
-                photoImageView.isHidden = false
-                ImageCacheManager.shared.setImage(image, forKey: cacheKey)
-            } else {
-                photoImageView.isHidden = true
-            }
-        } else {
-            photoImageView.isHidden = true
+            // Optional: Auto-migrate on read could be done here, but might be too heavy for cell
+            // Better to rely on the explicit migration method in CoreDataManager
         }
     }
 }

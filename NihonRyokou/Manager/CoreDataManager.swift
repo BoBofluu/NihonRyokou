@@ -59,7 +59,8 @@ class CoreDataManager {
         iconName: String? = nil
     ) -> ItineraryItem {
         let item = ItineraryItem(context: context)
-        item.id = UUID()
+        let uuid = UUID()
+        item.id = uuid
         item.type = type
         item.timestamp = timestamp
         item.title = title
@@ -67,7 +68,16 @@ class CoreDataManager {
         item.price = price
         item.locationURL = locationURL
         item.memo = memo
-        item.photoData = photoData
+        
+        // Optimize: Save photo to file system instead of Core Data
+        if let data = photoData {
+            if ImageFileManager.shared.saveImage(data: data, for: uuid) {
+                print("Image saved to file system for item: \(uuid)")
+            }
+            // Do NOT save to item.photoData to keep DB light
+            item.photoData = nil 
+        }
+        
         item.transportDuration = transportDuration
         item.iconName = iconName
         
@@ -91,7 +101,48 @@ class CoreDataManager {
     
     /// 刪除指定的行程項目
     func deleteItem(_ item: ItineraryItem) {
+        // Also delete the image file if exists
+        if let uuid = item.id {
+            ImageFileManager.shared.deleteImage(for: uuid)
+        }
         context.delete(item)
         save()
+    }
+    
+    // MARK: - Migration (資料遷移)
+    
+    /// 將舊有的 CoreData 圖片遷移至檔案系統
+    func migrateImagesToDisk() {
+        let request: NSFetchRequest<ItineraryItem> = ItineraryItem.fetchRequest()
+        
+        do {
+            let items = try context.fetch(request)
+            var migratedCount = 0
+            
+            for item in items {
+                // Check if item has heavy binary data in DB
+                if let data = item.photoData, let uuid = item.id {
+                    // Check if file already exists to avoid overwriting or duplicates
+                    if !ImageFileManager.shared.imageExists(for: uuid) {
+                        if ImageFileManager.shared.saveImage(data: data, for: uuid) {
+                            // Clear DB field
+                            item.photoData = nil
+                            migratedCount += 1
+                        }
+                    } else {
+                        // File exists, just clear DB
+                        item.photoData = nil
+                        migratedCount += 1 // Count as handled
+                    }
+                }
+            }
+            
+            if migratedCount > 0 {
+                save()
+                print("Successfully migrated \(migratedCount) images to file system.")
+            }
+        } catch {
+            print("Error during migration: \(error)")
+        }
     }
 }

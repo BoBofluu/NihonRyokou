@@ -202,33 +202,34 @@ class DetailViewController: UIViewController {
         
         memoLabel.text = item.memo ?? ""
         
-        if let data = item.photoData {
-            let cacheKey = item.id?.uuidString ?? ""
-            
-            // 1. Try Cache
-            if let cachedImage = ImageCacheManager.shared.image(forKey: cacheKey) {
-                imageView.image = cachedImage
-                imageView.isHidden = false
-                imageView.snp.updateConstraints { make in
-                    make.height.equalTo(300)
-                }
-            } 
-            // 2. Decode & Cache
-            else if let image = UIImage(data: data) {
-                imageView.image = image
-                imageView.isHidden = false
-                imageView.snp.updateConstraints { make in
-                    make.height.equalTo(300)
-                }
-                ImageCacheManager.shared.setImage(image, forKey: cacheKey)
-            } else {
-                imageView.isHidden = true
-                imageView.snp.updateConstraints { make in
-                    make.height.equalTo(0)
-                }
+        let uuid = item.id ?? UUID()
+        let cacheKey = uuid.uuidString
+        
+        imageView.isHidden = true
+        var imageToDisplay: UIImage?
+        
+        // 1. Check Memory Cache
+        if let cachedImage = ImageCacheManager.shared.image(forKey: cacheKey) {
+            imageToDisplay = cachedImage
+        }
+        // 2. Check File System
+        else if let fileImage = ImageFileManager.shared.loadImage(for: uuid) {
+            imageToDisplay = fileImage
+            ImageCacheManager.shared.setImage(fileImage, forKey: cacheKey)
+        }
+        // 3. Fallback to Core Data (Legacy Support)
+        else if let data = item.photoData, let dbImage = UIImage(data: data) {
+            imageToDisplay = dbImage
+            ImageCacheManager.shared.setImage(dbImage, forKey: cacheKey)
+        }
+        
+        if let image = imageToDisplay {
+            imageView.image = image
+            imageView.isHidden = false
+            imageView.snp.updateConstraints { make in
+                make.height.equalTo(300)
             }
         } else {
-            imageView.isHidden = true
             imageView.snp.updateConstraints { make in
                 make.height.equalTo(0)
             }
