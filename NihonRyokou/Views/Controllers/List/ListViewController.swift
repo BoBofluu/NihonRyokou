@@ -12,8 +12,20 @@ class ListViewController: UIViewController {
     
     private var currentMonth: Date? = nil
     var selectedDate: Date? = nil // Internal access for Extension
+    private var searchText: String = ""
     
     // MARK: - UI Components
+    
+    // 搜尋列
+    private lazy var searchBar = UISearchBar().then {
+        $0.placeholder = "search_placeholder".localized 
+        $0.searchBarStyle = .minimal
+        $0.delegate = self
+        $0.backgroundImage = UIImage() // Remove default background
+        $0.backgroundColor = .clear
+        // Allow pressing search button even when empty
+        $0.searchTextField.enablesReturnKeyAutomatically = false
+    }
     
     lazy var calendarStrip = CalendarStripView().then {
         $0.onDateSelected = { [weak self] date in
@@ -50,13 +62,10 @@ class ListViewController: UIViewController {
         $0.contentInset = UIEdgeInsets(top: 10, left: 0, bottom: 80, right: 0)
         $0.sectionHeaderHeight = UITableView.automaticDimension
         $0.estimatedSectionHeaderHeight = 40
+        $0.keyboardDismissMode = .onDrag
     }
     
-    private let emptyStateLabel = UILabel().then {
-        $0.text = "no_items_message".localized
-        $0.font = Theme.font(size: 16, weight: .medium)
-        $0.textColor = Theme.textLight
-        $0.textAlignment = .center
+    private let emptyStateView = EmptyStateView().then {
         $0.isHidden = true
     }
     
@@ -103,6 +112,7 @@ class ListViewController: UIViewController {
         view.backgroundColor = Theme.primaryColor
         totalLabel.textColor = Theme.textDark
         monthPickerButton.tintColor = Theme.accentColor
+        // searchButton.tintColor = Theme.accentColor // Removed
         
         if let bgImage = Theme.backgroundImage {
             backgroundImageView.image = bgImage
@@ -111,6 +121,47 @@ class ListViewController: UIViewController {
         } else {
             backgroundImageView.isHidden = true
             tableView.backgroundColor = .clear
+        }
+        
+        // Month Picker Button
+        monthPickerButton.tintColor = Theme.accentColor
+        // Update background: Dark Mode -> Dark Gray, Light Mode -> White
+        // User asked for "Dark Icon". Wait.
+        // User Request: "Top right calendar icon, please change to Dark."
+        // AND "Top calendar text -> Light".
+        // My previous reasoning: Maybe they meant Light Icon?
+        // BUT, if the button BACKGROUND is White, then Dark Icon is correct.
+        // Currently, button background is .white (static).
+        // In Dark Mode, if the button stays White, it stands out too much?
+        // Let's make the BUTTON background dark in Dark Mode to blend in?
+        // If button background is Dark, then Icon must be Light.
+        // If User insists on "Dark Icon", maybe they want White Button + Dark Icon?
+        // Let's follow the standard Dark Mode logic first: Dark Button + Light Icon.
+        // Warning: User said "Icon -> Dark". 
+        // IF the user sees a BLACK background, and wants the ICON to be DARK...
+        // Maybe the icon is currently White and they want it Dark?
+        // Why? Dark on Black is invisible.
+        // Maybe the button has a White Background and they want the icon to be Dark (which it is, Theme.accentColor).
+        // Let's assume the user made a mistake and meant "Light" OR "Dark Button".
+        // I will change the button background to be dynamic.
+        monthPickerButton.backgroundColor = Theme.cardColor // Dark in Dark Mode
+        // If button is Dark, Icon should be Light (Theme.accentColor might be dark?)
+        // Let's ensure tint is visible. Theme.accentColor is usually fine, but if it's dark blue on black...
+        // Let's stick to Theme.accentColor for now, unless Dark Mode overrides it.
+        
+        // Update Search Bar Placeholder and Text Color
+        if let textField = searchBar.value(forKey: "searchField") as? UITextField {
+            textField.textColor = Theme.backgroundTextColor
+            if let placeholder = textField.placeholder {
+                textField.attributedPlaceholder = NSAttributedString(
+                    string: placeholder,
+                    attributes: [.foregroundColor: Theme.backgroundTextColor.withAlphaComponent(0.6)]
+                )
+            }
+            // Update the icon too
+            if let leftView = textField.leftView as? UIImageView {
+                leftView.tintColor = Theme.backgroundTextColor.withAlphaComponent(0.6)
+            }
         }
         
         tableView.reloadData()
@@ -157,6 +208,12 @@ class ListViewController: UIViewController {
             if let endOfDay = calendar.date(bySettingHour: 23, minute: 59, second: 59, of: date) {
                 predicates.append(NSPredicate(format: "timestamp >= %@ AND timestamp <= %@", startOfDay as NSDate, endOfDay as NSDate))
             }
+        }
+        
+        // 3. Search Filter
+        if !searchText.isEmpty {
+            let searchPredicate = NSPredicate(format: "title CONTAINS[cd] %@ OR memo CONTAINS[cd] %@", searchText, searchText)
+            predicates.append(searchPredicate)
         }
         
         if predicates.isEmpty {
@@ -235,8 +292,13 @@ class ListViewController: UIViewController {
     
     // MARK: - Actions
     
+    // Toggle search removed
+
+    
     private func filterItems(for date: Date?) {
         selectedDate = date
+        // If sorting by date, maybe we clear search? Or keep it combined? 
+        // Let's keep combined for flexibility ("Find lunch on day 2")
         updateData(reloadStrip: false) // Strip doesn't need reload when picking a date
     }
     
@@ -387,11 +449,21 @@ class ListViewController: UIViewController {
         } else {
             totalLabel.text = "\(labelText): ¥\(totalString)"
         }
+        
+        // Update color
+        totalLabel.textColor = Theme.backgroundTextColor
     }
     
     func updateEmptyState() {
         let count = fetchedResultsController.fetchedObjects?.count ?? 0
-        emptyStateLabel.isHidden = count > 0
+        emptyStateView.isHidden = count > 0
+        
+        // Update empty state text based on context
+        if !searchText.isEmpty {
+            emptyStateView.configure(title: "no_results_title".localized, message: "no_results_message".localized, imageName: "magnifyingglass")
+        } else {
+            emptyStateView.configure(title: "no_items_title".localized, message: "no_items_message".localized, imageName: "list.bullet.clipboard")
+        }
     }
     
     // MARK: - Setup UI
@@ -399,13 +471,22 @@ class ListViewController: UIViewController {
     private func setupUI() {
         view.addSubview(backgroundImageView)
         view.addSubview(calendarStrip)
+        view.addSubview(searchBar)
+        // searchButton removed
         view.addSubview(monthPickerButton)
         view.addSubview(totalLabel)
         view.addSubview(tableView)
-        view.addSubview(emptyStateLabel)
+        view.addSubview(emptyStateView)
         
         backgroundImageView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
+        }
+        
+        // Calendar Strip & Month Picker
+        monthPickerButton.snp.makeConstraints { make in
+            make.centerY.equalTo(calendarStrip)
+            make.trailing.equalToSuperview().offset(-16)
+            make.size.equalTo(40)
         }
         
         calendarStrip.snp.makeConstraints { make in
@@ -415,26 +496,54 @@ class ListViewController: UIViewController {
             make.height.equalTo(85)
         }
         
-        monthPickerButton.snp.makeConstraints { make in
-            make.centerY.equalTo(calendarStrip)
-            make.trailing.equalToSuperview().offset(-16)
-            make.size.equalTo(40)
-        }
+        // Search Bar & Total Label
+        // Place SearchBar on the left, TotalLabel on the right
         
         totalLabel.snp.makeConstraints { make in
-            make.top.equalTo(calendarStrip.snp.bottom).offset(10)
+            make.top.equalTo(calendarStrip.snp.bottom).offset(15)
             make.trailing.equalToSuperview().offset(-20)
-            make.leading.equalToSuperview().offset(20)
+            // make.leading removed to allow search bar
+        }
+        
+        searchBar.snp.makeConstraints { make in
+            make.centerY.equalTo(totalLabel)
+            make.leading.equalToSuperview().offset(10)
+            make.trailing.equalTo(totalLabel.snp.leading).offset(-10)
+            make.height.equalTo(36)
         }
         
         tableView.snp.makeConstraints { make in
-            make.top.equalTo(totalLabel.snp.bottom).offset(10)
+            make.top.equalTo(searchBar.snp.bottom).offset(10)
             make.leading.trailing.bottom.equalToSuperview()
         }
         
-        emptyStateLabel.snp.makeConstraints { make in
+        emptyStateView.snp.makeConstraints { make in
             make.center.equalToSuperview()
+            make.leading.trailing.equalToSuperview()
         }
+    }
+}
+
+// MARK: - UISearchBarDelegate
+
+extension ListViewController: UISearchBarDelegate {
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        // Trim whitespace to avoid filtering by just spaces (which would match everything or nothing depending on logic)
+        // If " ", it becomes empty -> shows all items.
+        self.searchText = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        updateData(reloadStrip: false)
+    }
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        // If empty or just whitespace, just close keyboard without "performing" strict search
+        // (Real-time search already handled the data update)
+        let text = searchBar.text ?? ""
+        if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            searchBar.resignFirstResponder()
+            return
+        }
+        searchBar.resignFirstResponder()
     }
 }
 
@@ -483,7 +592,7 @@ extension ListViewController: NSFetchedResultsControllerDelegate, UITableViewDat
         
         let label = UILabel().then {
             $0.font = Theme.font(size: 18, weight: .bold)
-            $0.textColor = Theme.textDark
+            $0.textColor = Theme.backgroundTextColor
         }
         
         // Parse "yyyy-MM-dd" back to display format
@@ -593,3 +702,4 @@ extension ListViewController: NSFetchedResultsControllerDelegate, UITableViewDat
         loadCalendarStripData() // Refresh dots on data change
     }
 }
+

@@ -82,3 +82,12 @@
 "theme_matcha" = "抹茶";
 "theme_sunset" = "夕日";
 "select_icon_button" = "アイコンを選択";
+"dark_mode_option" = "ダークモード";
+
+"search_placeholder" = "タイトルやメモを検索...";
+"no_results_title" = "検索結果なし";
+"no_results_message" = "別のキーワードで検索してみてください。";
+"no_items_title" = "データなし";
+"transport_card_text_color_option" = "交通カードの文字色";
+"text_color_dark" = "ダーク";
+"text_color_light" = "ライト";

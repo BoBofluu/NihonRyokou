@@ -233,8 +233,8 @@ class CalendarDateCell: UICollectionViewCell {
             containerView.layer.shadowRadius = 6
         } else {
             containerView.backgroundColor = Theme.cardColor
-            dayLabel.textColor = Theme.textLight
-            dateLabel.textColor = Theme.textDark
+            dayLabel.textColor = Theme.isDarkMode ? .lightGray : Theme.textLight
+            dateLabel.textColor = Theme.cardTextColor
             containerView.layer.shadowOpacity = 0
         }
     }

@@ -53,10 +53,22 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let tabBarController = window?.rootViewController as? UITabBarController else { return }
         tabBarController.tabBar.tintColor = Theme.accentColor
         
-        // Opaque White Tab Bar
+        // Global Dark Mode Override
+        // This fixes SegmentedControl, DatePicker text, Keyboard, etc.
+        window?.overrideUserInterfaceStyle = Theme.isDarkMode ? .dark : .light
+        
+        // Tab Bar Appearance
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = .white
+        // If dark mode, maybe tab bar should be dark? The user didn't specify, but standard practice is dark.
+        // However, "options card" user asked for might be just inside the view.
+        // Let's keep Tab Bar white for now as it wasn't requested, OR make it adaptive?
+        // User's screenshot shows a white bar at the bottom? No, it's cut off.
+        // Let's stick to White for now to avoid breaking too much, unless requested. 
+        // ACTUALLY, if window is .dark, UITabBarAppearance.configureWithOpaqueBackground() might default to dark?
+        // No, we set .backgroundColor = .white explicitly.
+        // Let's make it adaptive.
+        appearance.backgroundColor = Theme.isDarkMode ? .black : .white
         
         tabBarController.tabBar.standardAppearance = appearance
         if #available(iOS 15.0, *) {
@@ -66,6 +78,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Global Navigation Bar Appearance
         let navAppearance = UINavigationBarAppearance()
         navAppearance.configureWithTransparentBackground()
+        
+        // Update Title Color
+        navAppearance.titleTextAttributes = [.foregroundColor: Theme.backgroundTextColor]
+        navAppearance.largeTitleTextAttributes = [.foregroundColor: Theme.backgroundTextColor]
+        
         navAppearance.backButtonAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.clear] // Hide text
         
         // Use Template mode to allow Tint Color (Theme Color) to apply
@@ -75,7 +92,21 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         UINavigationBar.appearance().standardAppearance = navAppearance
         UINavigationBar.appearance().compactAppearance = navAppearance
         UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
-        UINavigationBar.appearance().tintColor = .systemBlue
+        UINavigationBar.appearance().tintColor = Theme.accentColor
+        
+        // Force update existing nav controllers
+        if let tabVC = window?.rootViewController as? UITabBarController {
+            tabVC.viewControllers?.forEach {
+                if let nav = $0 as? UINavigationController {
+                    nav.navigationBar.standardAppearance = navAppearance
+                    nav.navigationBar.scrollEdgeAppearance = navAppearance
+                    nav.navigationBar.compactAppearance = navAppearance
+                    nav.navigationBar.tintColor = Theme.accentColor
+                    // Force refresh bar style
+                    nav.setNeedsStatusBarAppearanceUpdate()
+                }
+            }
+        }
     }
     
     func reloadRootViewController() {

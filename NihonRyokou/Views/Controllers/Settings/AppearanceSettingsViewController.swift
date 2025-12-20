@@ -17,14 +17,13 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDelegate, U
     // Custom Color Options
     private enum ColorOption: Int, CaseIterable {
         case primaryColor
-        case accentColor
+        case accentColor // Restore accentColor
         case transportCardColor
+        case transportCardTextColor
         case amountColor
     }
     
     // Icon Categories
-    // Icon Categories
-    // Icon Categories removed
     
     private var selectedThemeKey: Theme.ThemeKey?
     
@@ -59,8 +58,8 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDelegate, U
             let appearance = UINavigationBarAppearance()
             appearance.configureWithTransparentBackground()
             appearance.backgroundColor = .clear
-            appearance.titleTextAttributes = [.foregroundColor: Theme.textDark]
-            appearance.largeTitleTextAttributes = [.foregroundColor: Theme.textDark]
+            appearance.titleTextAttributes = [.foregroundColor: Theme.backgroundTextColor]
+            appearance.largeTitleTextAttributes = [.foregroundColor: Theme.backgroundTextColor]
             appearance.shadowColor = .clear
             
             navBar.standardAppearance = appearance
@@ -89,7 +88,7 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDelegate, U
         switch sectionType {
         case .presets: return 1
         case .background: return 1 // Image only
-        case .customColors: return ColorOption.allCases.count
+        case .customColors: return ColorOption.allCases.count + 1 // +1 for Dark Mode Toggle
         case .actions:
              // Only show action if NOT using custom theme
              if let current = Theme.currentPresetName, current != "theme_custom" {
@@ -113,6 +112,12 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDelegate, U
         case .customColors: return "custom_colors_title".localized
         case .actions: return nil
         default: return nil
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+        if let header = view as? UITableViewHeaderFooterView {
+            header.textLabel?.textColor = Theme.backgroundTextColor
         }
     }
     
@@ -145,52 +150,111 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDelegate, U
             cell.backgroundColor = Theme.cardColor
             
             // Text Color based on Card Contrast
-            let isCardLight = Theme.isLight(color: Theme.cardColor)
-            cell.textLabel?.textColor = isCardLight ? UIColor(white: 0.2, alpha: 1.0) : UIColor(white: 0.95, alpha: 1.0)
+            // Use Theme.backgroundTextColor for Dark Mode support (White in Dark Mode)
+            cell.textLabel?.textColor = Theme.backgroundTextColor
             
             cell.imageView?.image = nil
             cell.accessoryView = nil
             return cell
             
         } else if sectionType == .customColors {
-            let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
-            cell.backgroundColor = Theme.cardColor
-            cell.textLabel?.textAlignment = .natural
+            // Need to handle both color options and dark mode switch
+            // Logic: rows 0-3 are colors, row 4 is Dark Mode Switch
             
-            // Text Color based on Card Contrast
-            let isCardLight = Theme.isLight(color: Theme.cardColor)
-            cell.textLabel?.textColor = isCardLight ? UIColor(white: 0.2, alpha: 1.0) : UIColor(white: 0.95, alpha: 1.0)
-            
-            cell.imageView?.image = nil
-            cell.accessoryView = nil
-            cell.accessoryType = .none
-            
-            let option = ColorOption(rawValue: indexPath.row)
-            switch option {
-            case .primaryColor:
-                cell.textLabel?.text = "primary_color_option".localized
-                addColorPreview(to: cell, color: Theme.primaryColor)
-            case .accentColor:
-                cell.textLabel?.text = "accent_color_option".localized
-                addColorPreview(to: cell, color: Theme.accentColor)
-            case .transportCardColor:
-                cell.textLabel?.text = "transport_card_color_option".localized
-                addColorPreview(to: cell, color: Theme.transportCardColor)
-            case .amountColor:
-                cell.textLabel?.text = "amount_color_option".localized
-                addColorPreview(to: cell, color: Theme.amountColor)
-            default: break
+            if indexPath.row < ColorOption.allCases.count {
+                let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
+                cell.backgroundColor = Theme.cardColor
+                cell.textLabel?.textAlignment = .natural
+                
+                // Text Color based on Card Contrast
+                // Use Theme.backgroundTextColor
+                // If Custom Colors section has a white background (cardColor), and we are in Dark Mode (isDarkMode=true),
+                // Theme.backgroundTextColor will be WHITE.
+                // Wait, if Card is White, White Text is invisible.
+                // Theme.cardColor handles this: In Dark Mode, cardColor is Dark Gray.
+                // So text should indeed be White (Theme.backgroundTextColor).
+                // In Light Mode, cardColor is typically White (preset). Text should be Dark.
+                // Theme.backgroundTextColor handles this too (returns textDark if !isDarkMode).
+                
+                cell.textLabel?.textColor = Theme.backgroundTextColor
+                
+                cell.imageView?.image = nil
+                cell.accessoryView = nil
+                cell.accessoryType = .none
+                
+                let option = ColorOption(rawValue: indexPath.row)
+                switch option {
+                case .primaryColor:
+                    cell.textLabel?.text = "primary_color_option".localized
+                    addColorPreview(to: cell, color: Theme.primaryColor)
+                case .accentColor:
+                    cell.textLabel?.text = "accent_color_option".localized
+                    addColorPreview(to: cell, color: Theme.accentColor)
+                case .transportCardColor:
+                    cell.textLabel?.text = "transport_card_color_option".localized
+                    addColorPreview(to: cell, color: Theme.transportCardColor)
+                case .transportCardTextColor:
+                    cell.textLabel?.text = "transport_card_text_color_option".localized
+                    
+                    let segment = UISegmentedControl(items: ["text_color_dark".localized, "text_color_light".localized])
+                    // Use symbols if localization fails or as enhancement? 
+                    // No, user requested Multi-language, so localized text is best.
+                    
+                    segment.setTitleTextAttributes([.foregroundColor: UIColor.label], for: .normal)
+                    
+                    // Check current value
+                    // Note: Theme.transportCardTextColor returns a Color. 
+                    // We need to compare specific values.
+                    // But wait, the default might be textDark (0.2, 0.2, 0.2).
+                    // .black is (0,0,0). .white is (1,1,1).
+                    // Let's check brightness.
+                    let isLightText = Theme.isLight(color: Theme.transportCardTextColor)
+                    segment.selectedSegmentIndex = isLightText ? 1 : 0
+                    
+                    segment.addTarget(self, action: #selector(didChangeTransportTextColor(_:)), for: .valueChanged)
+                    cell.accessoryView = segment
+                    
+                case .amountColor:
+                    cell.textLabel?.text = "amount_color_option".localized
+                    addColorPreview(to: cell, color: Theme.amountColor)
+                default: break
+                }
+                
+                // Disable editing if not Custom Theme
+                let isCustom = Theme.currentPresetName == "theme_custom"
+                
+                // Special handling for the switch/segment interaction
+                cell.isUserInteractionEnabled = isCustom
+                if let segment = cell.accessoryView as? UISegmentedControl {
+                    segment.isEnabled = isCustom
+                }
+                
+                cell.contentView.alpha = isCustom ? 1.0 : 0.5
+                cell.backgroundColor = isCustom ? Theme.cardColor : UIColor.systemGray6
+                
+                return cell
+            } else {
+                // Dark Mode Row
+                let cell = UITableViewCell(style: .default, reuseIdentifier: "SwitchCell")
+                cell.backgroundColor = Theme.cardColor
+                cell.contentView.alpha = (Theme.currentPresetName == "theme_custom") ? 1.0 : 0.5
+                cell.isUserInteractionEnabled = (Theme.currentPresetName == "theme_custom")
+                if !cell.isUserInteractionEnabled { cell.backgroundColor = UIColor.systemGray6 }
+                
+                cell.textLabel?.text = "dark_mode_option".localized
+                cell.textLabel?.textColor = Theme.backgroundTextColor
+                cell.selectionStyle = .none
+                
+                let switchView = UISwitch()
+                switchView.isOn = Theme.isDarkMode
+                switchView.onTintColor = Theme.accentColor
+                switchView.addTarget(self, action: #selector(didToggleDarkMode(_:)), for: .valueChanged)
+                // Disable switch if not custom theme
+                switchView.isEnabled = (Theme.currentPresetName == "theme_custom")
+                
+                cell.accessoryView = switchView
+                return cell
             }
-            
-            // Disable editing if not Custom Theme
-            let isCustom = Theme.currentPresetName == "theme_custom"
-            
-            cell.isUserInteractionEnabled = isCustom
-            cell.contentView.alpha = isCustom ? 1.0 : 0.5
-            // Make background gray if disabled to visually indicate locked state
-            cell.backgroundColor = isCustom ? Theme.cardColor : UIColor.systemGray6
-            
-            return cell
             
         } else if sectionType == .actions {
             let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
@@ -293,6 +357,17 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDelegate, U
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
     }
+    
+    @objc private func didChangeTransportTextColor(_ sender: UISegmentedControl) {
+        let isLight = sender.selectedSegmentIndex == 1
+        Theme.saveColor(isLight ? .white : .black, for: .transportCardTextColor)
+    }
+
+    @objc private func didToggleDarkMode(_ sender: UISwitch) {
+        Theme.isDarkMode = sender.isOn
+        // Update UI
+        tableView.reloadData()
+    }
 
     
     // MARK: - Image Picker
@@ -324,6 +399,7 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDelegate, U
             case .accentColor: picker.selectedColor = Theme.accentColor
             case .transportCardColor: picker.selectedColor = Theme.transportCardColor
             case .amountColor: picker.selectedColor = Theme.amountColor
+            case .transportCardTextColor: picker.selectedColor = Theme.transportCardTextColor
             }
         }
         
@@ -412,7 +488,7 @@ class PresetItemCell: UICollectionViewCell {
     
     private let nameLabel = UILabel().then {
         $0.font = Theme.font(size: 12, weight: .medium)
-        $0.textColor = Theme.textDark
+        $0.textColor = Theme.backgroundTextColor
         $0.textAlignment = .center
     }
     
@@ -439,6 +515,7 @@ class PresetItemCell: UICollectionViewCell {
         colorView.backgroundColor = UIColor(hex: preset.primary)
         colorView.layer.borderColor = UIColor(hex: preset.accent).cgColor
         nameLabel.text = preset.name.localized
+        nameLabel.textColor = Theme.backgroundTextColor // Ensure color updates on reload
         
         if Theme.currentPresetName == preset.name {
             colorView.layer.borderWidth = 4

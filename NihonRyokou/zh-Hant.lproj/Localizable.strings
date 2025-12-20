@@ -83,3 +83,12 @@
 "theme_matcha" = "抹茶";
 "theme_sunset" = "夕陽";
 "select_icon_button" = "選擇圖示";
+"dark_mode_option" = "深色模式";
+
+"search_placeholder" = "搜尋標題或備註...";
+"no_results_title" = "查無結果";
+"no_results_message" = "試著搜尋其他關鍵字看看？";
+"no_items_title" = "尚無資料";
+"transport_card_text_color_option" = "交通卡文字顏色";
+"text_color_dark" = "深色";
+"text_color_light" = "淺色";

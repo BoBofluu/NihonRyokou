@@ -42,7 +42,7 @@ class LanguageSettingsViewController: UIViewController, UITableViewDelegate, UIT
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
         cell.backgroundColor = Theme.cardColor
-        cell.textLabel?.textColor = Theme.textDark
+        cell.textLabel?.textColor = Theme.backgroundTextColor
         
         let languages = ["English", "日本語", "繁體中文", "한국어"]
         cell.textLabel?.text = languages[indexPath.row]

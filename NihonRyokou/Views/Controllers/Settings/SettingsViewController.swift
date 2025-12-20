@@ -59,8 +59,8 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
             let appearance = UINavigationBarAppearance()
             appearance.configureWithTransparentBackground()
             appearance.backgroundColor = .clear
-            appearance.titleTextAttributes = [.foregroundColor: Theme.textDark]
-            appearance.largeTitleTextAttributes = [.foregroundColor: Theme.textDark]
+            appearance.titleTextAttributes = [.foregroundColor: Theme.backgroundTextColor]
+            appearance.largeTitleTextAttributes = [.foregroundColor: Theme.backgroundTextColor]
             appearance.shadowColor = .clear // Remove divider line
             
             navBar.standardAppearance = appearance
@@ -94,11 +94,11 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
         let cellBackground = Theme.backgroundImage != nil ? Theme.cardColor.withAlphaComponent(0.9) : Theme.cardColor
         cell.backgroundColor = cellBackground
         
-        // Calculate text color based on Card Color brightness, not Primary Color
-        let isCardLight = Theme.isLight(color: Theme.cardColor)
-        // If card is light, text should be dark. If card is dark, text white.
-        // We use a dedicated logic here instead of Theme.textDark
-        cell.textLabel?.textColor = isCardLight ? UIColor(white: 0.2, alpha: 1.0) : UIColor(white: 0.95, alpha: 1.0)
+        // Text Color Logic:
+        // Use Theme.backgroundTextColor (White in Dark Mode, Dark in Light Mode)
+        // This handles "Dark background -> Light Text" automatically if isDarkMode is true.
+        // It also respects the "Light Card -> Dark Text" for Light Mode.
+        cell.textLabel?.textColor = Theme.backgroundTextColor
         
         cell.accessoryType = .disclosureIndicator
         

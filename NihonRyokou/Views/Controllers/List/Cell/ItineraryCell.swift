@@ -244,12 +244,25 @@ class ItineraryCell: UITableViewCell {
         } else {
             iconView.image = UIImage(systemName: imageName)
         }
-        iconView.tintColor = Theme.accentColor
-        
         // Update text colors for dynamic theme support
-        titleLabel.textColor = Theme.textDark
-        locationLabel.textColor = Theme.textLight
-        timeLabel.textColor = Theme.textDark
+        if item.type == "transport" {
+            // Use the user's preferred text color for Transport Cards.
+            // If they are in Custom mode, they can toggle Dark/Light text.
+            // If in Preset mode, it defaults to dark (Theme.textDark).
+            
+            titleLabel.textColor = Theme.transportCardTextColor
+            timeLabel.textColor = Theme.transportCardTextColor
+            locationLabel.textColor = .systemGray
+            iconView.tintColor = Theme.secondaryAccent // Keep original logic for transport tint
+        } else {
+            // Standard Card (Dark in Dark Mode) -> White Text
+            titleLabel.textColor = Theme.cardTextColor
+            timeLabel.textColor = Theme.cardTextColor
+            locationLabel.textColor = Theme.isDarkMode ? .lightGray : .systemGray
+            
+            // Icon Color: Keep Accent Color (Original)
+            iconView.tintColor = Theme.accentColor
+        }
         priceLabel.textColor = Theme.amountColor
         durationLabel.textColor = Theme.textLight
         

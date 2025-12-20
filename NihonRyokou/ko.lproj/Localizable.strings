@@ -83,3 +83,12 @@
 "theme_matcha" = "말차";
 "theme_sunset" = "일몰";
 "select_icon_button" = "아이콘 선택";
+"dark_mode_option" = "다크 모드";
+
+"search_placeholder" = "제목 또는 메모 검색...";
+"no_results_title" = "검색 결과 없음";
+"no_results_message" = "다른 키워드로 검색해 보세요.";
+"no_items_title" = "항목 없음";
+"transport_card_text_color_option" = "교통 카드 텍스트 색상";
+"text_color_dark" = "다크";
+"text_color_light" = "라이트";

@@ -82,3 +82,12 @@
 "theme_matcha" = "Matcha";
 "theme_sunset" = "Sunset";
 "select_icon_button" = "Select Icon";
+"dark_mode_option" = "Dark Mode";
+
+"search_placeholder" = "Search title or memo...";
+"no_results_title" = "No Results";
+"no_results_message" = "Try searching for something else?";
+"no_items_title" = "No Items";
+"transport_card_text_color_option" = "Transport Text Color";
+"text_color_dark" = "Dark";
+"text_color_light" = "Light";

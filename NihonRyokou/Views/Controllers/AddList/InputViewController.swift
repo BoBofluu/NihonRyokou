@@ -247,14 +247,29 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         dateInputWrapper.layer.cornerRadius = 12
         datePicker.tintColor = Theme.accentColor
         
+        iconSelectionContainer.backgroundColor = Theme.inputFieldColor
+        
+        // Update Icon Preview Tint
+        // If Dark Mode, make icon white/light for visibility on dark background
+        iconPreviewView.tintColor = Theme.isDarkMode ? .white : Theme.accentColor
+        
+        // Update Segmented Control Style
+        segmentedControl.overrideUserInterfaceStyle = Theme.isDarkMode ? .dark : .light
+        
         [titleField, durationField, locationField, memoField, priceField, urlField].forEach {
             $0.backgroundColor = Theme.inputFieldColor
-            $0.textColor = Theme.textDark
+            // Input Text should be readable on dark input background -> White in Dark Mode
+            $0.textColor = Theme.backgroundTextColor 
             if let placeholder = $0.placeholder {
                 $0.attributedPlaceholder = NSAttributedString(
                     string: placeholder,
                     attributes: [.foregroundColor: Theme.placeholderColor]
                 )
+            }
+            
+            // Update left icon tint color
+            if let leftView = $0.leftView, let iconView = leftView.subviews.first(where: { $0 is UIImageView }) as? UIImageView {
+                iconView.tintColor = Theme.placeholderColor // Use placeholder color (light gray in dark mode)
             }
         }
         
@@ -503,6 +518,9 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
         }
         
         UIView.animate(withDuration: 0.3) { self.view.layoutIfNeeded() }
+        
+        let generator = UISelectionFeedbackGenerator()
+        generator.selectionChanged()
     }
     
     func numberOfComponents(in pickerView: UIPickerView) -> Int { return 2 }
@@ -513,6 +531,8 @@ class InputViewController: UIViewController, PHPickerViewControllerDelegate, UIP
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
         if component == 0 { selectedHour = hours[row] } else { selectedMinute = minutes[row] }
         updateDurationText()
+        let generator = UISelectionFeedbackGenerator()
+        generator.selectionChanged()
     }
     private func updateDurationText() {
         if selectedHour == 0 && selectedMinute == 0 { durationField.text = "" }
